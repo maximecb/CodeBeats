@@ -1,0 +1,15 @@
+TODO: simplify MusicToy API
+- global synth net, global piece, less calls required
+
+TODO: gist sharing system
+
+TODO: add some information and/or FAQ about CodeBeats
+- purpose, how to use, links to JS API files on github
+
+TODO: Add "Fork me on GitHub" link
+
+TODO: create initial page design with CodeMirror view
+- "Run", "Mute" buttons
+
+[DONE] TODO: import MusicToy code
+
