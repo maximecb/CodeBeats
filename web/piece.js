@@ -44,17 +44,17 @@
 /**
 @class Musical piece implementation.
 */
-function Piece(synthNet)
+function Piece(graph)
 {
     assert (
-        synthNet instanceof SynthNet || synthNet === undefined,
+        graph instanceof AudioGraph || graph === undefined,
         'invalid synth net'
     );
 
     /**
-    Synthesis network used by this piece
+    Audio graph used by this piece
     */
-    this.synthNet = synthNet;
+    this.graph = graph;
 
     /**
     Music/info tracks
@@ -69,7 +69,7 @@ function Piece(synthNet)
     /**
     Loop time
     */
-    this.loopTime = 0;
+    this.loopTime = undefined;
 
     /**
     Previous update time
@@ -141,13 +141,7 @@ Produces a note-on and note-off event pair.
 */
 Piece.prototype.makeNote = function (track, beatNo, note, len, vel)
 {
-    assert (
-        note instanceof Note ||
-        typeof note === 'string',
-        'invalid note'
-    );
-
-    if (typeof note === 'string')
+    if ((note instanceof Note) == false)
         note = new Note(note);
 
     // By default, the velocity is 100%
@@ -200,13 +194,13 @@ Called when stopping the playback of a piece
 Piece.prototype.stop = function ()
 {
     // If a synthesis network is attached to this piece
-    if (this.synthNet !== undefined)
+    if (this.graph !== undefined)
     {
         // Send an all notes off event to all synthesis nodes
         var notesOffEvt = new AllNotesOffEvt();
-        for (var i = 0; i < this.synthNet.nodes.length; ++i)
+        for (var i = 0; i < this.graph.nodes.length; ++i)
         {
-            var node = this.synthNet.nodes[i];
+            var node = this.graph.nodes[i];
             node.processEvent(notesOffEvt);
         }
     }
@@ -220,13 +214,13 @@ Create a handler for real-time audio generation
 */
 Piece.prototype.makeHandler = function ()
 {
-    var synthNet = this.synthNet;
+    var graph = this.graph;
     var piece = this;
 
-    var sampleRate = synthNet.sampleRate;
+    var sampleRate = graph.sampleRate;
 
-    // Output node of the synthesis network
-    var outNode = synthNet.outNode;
+    // Output node of the audio graph
+    var outNode = graph.outNode;
 
     // Current playback time
     var curTime = piece.playTime;
@@ -253,18 +247,18 @@ Piece.prototype.makeHandler = function ()
         );
 
         assert (
-            numSamples % SYNTH_BUF_SIZE === 0,
+            numSamples % AUDIO_BUF_SIZE === 0,
             'the output buffer size must be a multiple of the synth buffer size'
         );
         
         // Until all samples are produced
-        for (var smpIdx = 0; smpIdx < numSamples; smpIdx += SYNTH_BUF_SIZE)
+        for (var smpIdx = 0; smpIdx < numSamples; smpIdx += AUDIO_BUF_SIZE)
         {
             // Update the piece, dispatch track events
             piece.dispatch(curTime, realTime);
 
             // Generate the sample values
-            var values = synthNet.genOutput(realTime);
+            var values = graph.genOutput(realTime);
 
             // Copy the values for each channel
 	        for (var chnIdx = 0; chnIdx < numChans; ++chnIdx)
@@ -272,13 +266,13 @@ Piece.prototype.makeHandler = function ()
                 var srcBuf = outNode.getBuffer(chnIdx);
                 var dstBuf = evt.outputBuffer.getChannelData(chnIdx);
 
-                for (var i = 0; i < SYNTH_BUF_SIZE; ++i)
+                for (var i = 0; i < AUDIO_BUF_SIZE; ++i)
                     dstBuf[smpIdx + i] = srcBuf[i];
             }
 
             // Update the current time based on sample rate
-            curTime  += SYNTH_BUF_SIZE / sampleRate;
-            realTime += SYNTH_BUF_SIZE / sampleRate;
+            curTime  += AUDIO_BUF_SIZE / sampleRate;
+            realTime += AUDIO_BUF_SIZE / sampleRate;
 
             // If we lust passed the loop time, go back to the start
             if (piece.playTime <= piece.loopTime &&
@@ -296,7 +290,7 @@ Piece.prototype.makeHandler = function ()
 
         var endTime = (new Date()).getTime();
         var compTime = (endTime - startTime) / 1000;
-        var soundTime = (numSamples / synthNet.sampleRate);
+        var soundTime = (numSamples / graph.sampleRate);
         var cpuUse = (100 * compTime / soundTime).toFixed(1);
 
         //console.log('cpu use: ' + cpuUse + '%');
@@ -718,12 +712,12 @@ to a target synthesis node.
 function Track(target)
 {
     assert (
-        target instanceof SynthNode || target === undefined,
+        target instanceof AudioNode || target === undefined,
         'invalid target node'
     );
 
     /**
-    Target synthesis node to send events to
+    Target audio node to send events to
     */
     this.target = target;
 

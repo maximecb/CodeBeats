@@ -1,15 +1,39 @@
-TODO: simplify MusicToy API
-- global synth net, global piece, less calls required
-
-TODO: gist sharing system
+*Add new items at the top*
 
 TODO: add some information and/or FAQ about CodeBeats
 - purpose, how to use, links to JS API files on github
+
+TODO: prepare some code examples, with share-able links
+
+TODO: create sampler with initial sample bank
+
+TODO: simplify MusicToy API
+- One global sound graph/net, auto-updated on connection of devices
+- One global piece object
+- Various helper functions
+- Shorter names
+
+TODO: write JS code to interface with gist sharing system
+
+TODO: CodeMirror saving across sessions in browser db
 
 TODO: Add "Fork me on GitHub" link
 
 TODO: create initial page design with CodeMirror view
 - "Run", "Mute" buttons
+
+
+
+TODO: synth piano instrument, call "piano", connect to mixer
+
+
+
+[DONE] TODO: simple global API, easyaudio.js
+- newTrack()
+- addNode()
+- makeNote()
+
+[DONE] TODO: rename synthNet to audioGraph
 
 [DONE] TODO: import MusicToy code
 

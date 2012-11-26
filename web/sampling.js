@@ -61,14 +61,22 @@ function Sample(url)
     var that = this;
     xhr.onload = function() 
     {
-        var audioBuffer = audioCtx.createBuffer(xhr.response, true);
-        var f32buffer = audioBuffer.getChannelData(0);
+        try
+        {
+            var audioBuffer = audioCtx.createBuffer(xhr.response, true);
+            var f32buffer = audioBuffer.getChannelData(0);
 
-        var f64buffer = new Float64Array(f32buffer.length);
-        for (var i = 0; i < f32buffer.length; ++i)
-            f64buffer[i] = f32buffer[i];
+            var f64buffer = new Float64Array(f32buffer.length);
+            for (var i = 0; i < f32buffer.length; ++i)
+                f64buffer[i] = f32buffer[i];
 
-        that.buffer = f64buffer;
+            that.buffer = f64buffer;
+        }
+
+        catch (e)
+        {
+            console.error('failed to load "' + url + '"');
+        }
 
         //console.log('loaded sample "' + url + '" (' + that.buffer.length + ')');
     };
@@ -78,7 +86,7 @@ function Sample(url)
 
 /**
 @class Basic sample-mapping instrument
-@extends SynthNode
+@extends AudioNode
 */
 function SampleKit()
 {
@@ -93,18 +101,18 @@ function SampleKit()
     this.actSamples = [];
 
     // Sound output
-    new SynthOutput(this, 'output');
+    new AudioOutput(this, 'output');
 
     this.name = 'sample-kit';
 }
-SampleKit.prototype = new SynthNode();
+SampleKit.prototype = new AudioNode();
 
 /**
 Map a sample to a given note
 */
 SampleKit.prototype.mapSample = function (note, sample, volume)
 {
-    if (typeof note === 'string')
+    if ((note instanceof Note) == false)
         note = new Note(note);
 
     if (typeof sample === 'string')
@@ -205,7 +213,7 @@ SampleKit.prototype.update = function (time, sampleRate)
 
 /**
 @class Sample-based pitch-shifting instrument
-@extends SynthNode
+@extends AudioNode
 */
 function SampleInstr(sample, centerNote)
 {
@@ -233,11 +241,11 @@ function SampleInstr(sample, centerNote)
     // TODO: loop points
 
     // Sound output
-    new SynthOutput(this, 'output');
+    new AudioOutput(this, 'output');
 
     this.name = 'sample-instr';
 }
-SampleInstr.prototype = new SynthNode();
+SampleInstr.prototype = new AudioNode();
 
 /**
 Process an event

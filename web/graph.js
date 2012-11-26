@@ -38,23 +38,23 @@
 *****************************************************************************/
 
 //============================================================================
-// Synthesis network core
+// Audio graph core
 //============================================================================
 
 /**
-Buffer size used by the synthesis network
+Buffer size used by the audio graph
 */
-var SYNTH_BUF_SIZE = 256;
+var AUDIO_BUF_SIZE = 256;
 
 /**
 Buffer containing only zero data
 */
-var SYNTH_ZERO_BUF = new Float64Array(SYNTH_BUF_SIZE);
+var AUDIO_ZERO_BUF = new Float64Array(AUDIO_BUF_SIZE);
 
 /**
-@class Synthesis node output
+@class Audio node output
 */
-function SynthOutput(node, name, numChans)
+function AudioOutput(node, name, numChans)
 {
     assert (
         node[name] === undefined,
@@ -66,7 +66,7 @@ function SynthOutput(node, name, numChans)
         numChans = 1;
 
     /**
-    Parent synthesis node
+    Parent audio node
     */
     this.node = node;
 
@@ -97,7 +97,7 @@ function SynthOutput(node, name, numChans)
 
     // Allocate the output buffers
     for (var i = 0; i < numChans; ++i)
-        this.buffers[i] = new Float64Array(SYNTH_BUF_SIZE);
+        this.buffers[i] = new Float64Array(AUDIO_BUF_SIZE);
 
     // Create a field in the parent node for this output
     node[name] = this;
@@ -106,7 +106,7 @@ function SynthOutput(node, name, numChans)
 /**
 Get the buffer for a given channel
 */
-SynthOutput.prototype.getBuffer = function (chanIdx)
+AudioOutput.prototype.getBuffer = function (chanIdx)
 {
     assert (
         !(chanIdx === undefined && this.numChans > 1),
@@ -123,12 +123,12 @@ SynthOutput.prototype.getBuffer = function (chanIdx)
 }
 
 /**
-Connect to a synthesis input
+Connect to an audio input
 */
-SynthOutput.prototype.connect = function (dst)
+AudioOutput.prototype.connect = function (dst)
 {
     assert (
-        dst instanceof SynthInput,
+        dst instanceof AudioInput,
         'invalid dst'
     );
 
@@ -155,9 +155,9 @@ SynthOutput.prototype.connect = function (dst)
 }
 
 /**
-@class Synthesis node input
+@class Audio node input
 */
-function SynthInput(node, name, numChans)
+function AudioInput(node, name, numChans)
 {
     assert (
         node[name] === undefined,
@@ -178,7 +178,7 @@ function SynthInput(node, name, numChans)
 /**
 Test if data is available
 */
-SynthInput.prototype.hasData = function ()
+AudioInput.prototype.hasData = function ()
 {
     if (this.src === undefined)
         return false;
@@ -189,11 +189,11 @@ SynthInput.prototype.hasData = function ()
 /**
 Get the buffer for a given channel
 */
-SynthInput.prototype.getBuffer = function (chanIdx)
+AudioInput.prototype.getBuffer = function (chanIdx)
 {
     assert (
-        this.src instanceof SynthOutput,
-        'synth input not connected to any output'
+        this.src instanceof AudioOutput,
+        'audio input not connected to any output'
     );
 
     assert (
@@ -208,7 +208,7 @@ SynthInput.prototype.getBuffer = function (chanIdx)
 
     // If the source has no data, return the zero buffer
     if (this.src.hasData === false)
-        return SYNTH_ZERO_BUF;
+        return AUDIO_ZERO_BUF;
 
     if (chanIdx === undefined)
         chanIdx = 0;
@@ -220,9 +220,9 @@ SynthInput.prototype.getBuffer = function (chanIdx)
 }
 
 /**
-@class Synthesis network node
+@class Audio graph node
 */
-function SynthNode()
+function AudioNode()
 {
     /**
     Node name
@@ -233,7 +233,7 @@ function SynthNode()
 /**
 Process an event
 */
-SynthNode.prototype.processEvent = function (evt, time)
+AudioNode.prototype.processEvent = function (evt, time)
 {
     // By default, do nothing
 }
@@ -241,17 +241,17 @@ SynthNode.prototype.processEvent = function (evt, time)
 /**
 Update the outputs based on the inputs
 */
-SynthNode.prototype.update = function (time, sampleRate)
+AudioNode.prototype.update = function (time, sampleRate)
 {
     // By default, do nothing
 }
 
 /**
-Audio synthesis network
+Audio synthesis graph
 */
-function SynthNet(sampleRate)
+function AudioGraph(sampleRate)
 {
-    console.log('Creating synth network');
+    console.log('Creating audio graph');
 
     assert (
         isPosInt(sampleRate),
@@ -280,24 +280,24 @@ function SynthNet(sampleRate)
 }
 
 /**
-Add a node to the network
+Add a node to the graph
 */
-SynthNet.prototype.addNode = function (node)
+AudioGraph.prototype.addNode = function (node)
 {
     assert (
         this.nodes.indexOf(node) === -1,
-        'node already in network'
+        'node already in graph'
     );
 
     assert (
         !(node instanceof OutNode && this.outNode !== null),
-        'output node already in network'
+        'output node already in graph'
     );
 
     if (node instanceof OutNode)
         this.outNode = node;
 
-    // Add the node to the network
+    // Add the node to the graph
     this.nodes.push(node);
 
     // Invalidate any existing node ordering
@@ -309,7 +309,7 @@ SynthNet.prototype.addNode = function (node)
 /**
 Produce a topological ordering of the nodes
 */
-SynthNet.prototype.orderNodes = function ()
+AudioGraph.prototype.orderNodes = function ()
 {
     console.log('Computing node ordering');
 
@@ -335,18 +335,18 @@ SynthNet.prototype.orderNodes = function ()
         // Collect all inputs for this node
         for (k in node)
         {
-            if (node[k] instanceof SynthInput)
+            if (node[k] instanceof AudioInput)
             {
-                var synthIn = node[k];
+                var audioIn = node[k];
 
-                //console.log('Input port: ' + synthIn.name);
-                //console.log(synthIn.src);
+                //console.log('Input port: ' + audioIn.name);
+                //console.log(audioIn.src);
 
-                if (synthIn.src instanceof SynthOutput)
+                if (audioIn.src instanceof AudioOutput)
                 {
-                    //console.log(node.name + ': ' + synthIn.name);
+                    //console.log(node.name + ': ' + audioIn.name);
 
-                    node.inEdges.push(synthIn.src);
+                    node.inEdges.push(audioIn.src);
                     ++numEdges;
                 }
             }
@@ -371,19 +371,19 @@ SynthNet.prototype.orderNodes = function ()
         // For each output port of this node
         for (k in node)
         {
-            if (node[k] instanceof SynthOutput)
+            if (node[k] instanceof AudioOutput)
             {
-                var synthOut = node[k];
+                var audioOut = node[k];
 
                 // For each destination of this port
-                for (var i = 0; i < synthOut.dsts.length; ++i)
+                for (var i = 0; i < audioOut.dsts.length; ++i)
                 {
-                    var dstIn = synthOut.dsts[i];
+                    var dstIn = audioOut.dsts[i];
                     var dstNode = dstIn.node;
 
                     //console.log('dst: ' + dstNode.name);
 
-                    var idx = dstNode.inEdges.indexOf(synthOut);
+                    var idx = dstNode.inEdges.indexOf(audioOut);
 
                     assert (
                         idx !== -1,
@@ -422,7 +422,7 @@ SynthNet.prototype.orderNodes = function ()
 Generate audio for each output channel.
 @returns An array of audio samples (one per channel).
 */
-SynthNet.prototype.genOutput = function (time)
+AudioGraph.prototype.genOutput = function (time)
 {
     assert (
         this.order instanceof Array,
@@ -430,7 +430,7 @@ SynthNet.prototype.genOutput = function (time)
     );
 
     assert (
-        this.outNode instanceof SynthNode,
+        this.outNode instanceof AudioNode,
         'genSample: output node not found'
     );
 
@@ -441,7 +441,7 @@ SynthNet.prototype.genOutput = function (time)
 
         // Reset the outputs for this node
         for (k in node)
-            if (node[k] instanceof SynthOutput)
+            if (node[k] instanceof AudioOutput)
                 node[k].hasData = false;
 
         // Update this node
@@ -458,7 +458,7 @@ SynthNet.prototype.genOutput = function (time)
 
 /**
 @class Output node
-@extends SynthNode
+@extends AudioNode
 */
 function OutNode(numChans)
 {
@@ -471,11 +471,11 @@ function OutNode(numChans)
     this.numChans = numChans;
 
     // Audio input signal
-    new SynthInput(this, 'signal', numChans);
+    new AudioInput(this, 'signal', numChans);
 
     this.name = 'output';
 }
-OutNode.prototype = new SynthNode();
+OutNode.prototype = new AudioNode();
 
 /**
 Get the buffer for a given output channel

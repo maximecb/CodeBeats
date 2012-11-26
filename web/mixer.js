@@ -83,16 +83,16 @@ function Mixer(numInputs, numChans)
         this.inPanning[i] = 0;
 
         // Audio input signal
-        this.inputs[i] = new SynthInput(this, 'input' + i, numChans);
+        this.inputs[i] = new AudioInput(this, 'input' + i, numChans);
     }
 
     // Audio output
-    new SynthOutput(this, 'output', numChans);
+    new AudioOutput(this, 'output', numChans);
 
     // Default name for this node
     this.name = 'mixer';
 }
-Mixer.prototype = new SynthNode();
+Mixer.prototype = new AudioNode();
 
 /**
 Update the outputs based on the inputs

@@ -39,7 +39,7 @@
 
 /**
 @class Simple virtual analog synthesizer
-@extends SynthNode
+@extends AudioNode
 */
 function VAnalog(numOscs)
 {
@@ -118,17 +118,17 @@ function VAnalog(numOscs)
     /**
     Temporary oscillator buffer, for intermediate processing
     */
-    this.oscBuf = new Float64Array(SYNTH_BUF_SIZE);
+    this.oscBuf = new Float64Array(AUDIO_BUF_SIZE);
 
     /**
     Temporary note buffer, for intermediate processing
     */
-    this.noteBuf = new Float64Array(SYNTH_BUF_SIZE);
+    this.noteBuf = new Float64Array(AUDIO_BUF_SIZE);
 
     // Sound output
-    new SynthOutput(this, 'output');
+    new AudioOutput(this, 'output');
 }
-VAnalog.prototype = new SynthNode();
+VAnalog.prototype = new AudioNode();
 
 /**
 Process an event

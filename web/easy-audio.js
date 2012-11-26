@@ -37,71 +37,22 @@
 *
 *****************************************************************************/
 
-/**
-@class Overdrive distortion effect
-@extends AudioNode
-*/
-function Overdrive(numOscs)
+//============================================================================
+// Easy to use (simplified) audio API
+//============================================================================
+
+function addNode(audioNode)
 {
-    this.name = 'overdrive';
-
-    /**
-    Input gain
-    */
-    this.gain = 1;
-
-    /**
-    Clipping threshold
-    */
-    this.threshold = 0.7;
-
-    /**
-    Clipping factor (ratio is 1 / factor)
-    */
-    this.factor = 1;
-
-    // Sound Input
-    new AudioInput(this, 'input');
-
-    // Sound output
-    new AudioOutput(this, 'output');
+    return graph.addNode(audioNode);
 }
-Overdrive.prototype = new AudioNode();
 
-/**
-Update the outputs based on the inputs
-*/
-Overdrive.prototype.update = function (time, sampleRate)
+function newTrack(instr)
 {
-    // If this input has no available data, do nothing
-    if (this.input.hasData() === false)
-        return;
+    return piece.addTrack(new Track(instr));
+}
 
-    // Get the input buffer
-    var inBuf = this.input.getBuffer();
-
-    // Get the output buffer
-    var outBuf = this.output.getBuffer();
-
-    var f = 1 / this.factor;
-
-    // For each sample
-    for (var i = 0; i < inBuf.length; ++i)
-    {
-        var s = inBuf[i] * this.gain;
-
-        var absS = Math.abs(s);
-
-        var d = absS - this.threshold;
-
-        if (d > 0)
-        {
-            absS = (absS - d) + (f * d);
-
-            s = (s > 0)? absS:-absS;                
-        }
-
-        outBuf[i] = s;
-    }
+function makeNote(track, beatNo, note, len, vel)
+{
+    piece.makeNote(track, beatNo, note, len, vel);
 }
 
