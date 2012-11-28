@@ -1,0 +1,117 @@
+
+
+
+body {
+  background-color: #272822
+}
+
+.CodeMirror {
+  font-size: 20px;
+}
+
+#top-container {
+  margin-top: 150px;
+}
+
+#editor {
+}
+
+
+#login-info {
+  height:       30px;
+  float:        left;
+  margin-left: -150px;
+  padding-top:  6px;
+}
+
+#github-login {
+  float: right;
+  font-weight: bold;
+}
+
+#toolbar {
+  background-color: #eeeeee;
+  padding:          10px;
+  padding-bottom:   3px;
+  margin:           0px;
+  margin-top:       5px;
+  margin-bottom:    0px;
+  border:           5px;
+  border-top-left-radius: 10px;
+  border-top-right-radius:10px;
+  border-bottom-left-radius: 10px;
+}
+
+#open-form {
+  display: none;
+}
+
+#save-form {
+  display: none;
+}
+
+
+#dim {
+  display: none;
+  position: absolute;
+  background-color: #000000;
+  opacity: 0.6;
+  top:   0px;
+  left:  0px;
+  width: 100%;
+  height:100%;
+  z-index: 14;
+}
+
+
+#popup-close {
+  margin-top: -10px;
+  margin-right: -8px;
+  font-size: 20px;
+}
+
+#popup {
+  display: none;
+  background-color: #eeeeee;
+  position: absolute;
+  /*width:   400px;*/
+  height:  300px;
+  z-index: 15;
+  top:     50%;
+  left:    50%;
+  margin:  -150px 0 0 -200px;
+  padding:  20px;
+  border-radius: 10px;
+}
+
+.toolbar-btn {
+  width: 45px;
+  height: 30px;
+}
+
+.wide-btn {
+  height: 30px;
+}
+
+
+.play-arrow {
+  width: 0px; 
+  height: 0px;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 18px solid #A7B95D;
+}
+
+.stop-square {
+  width: 0px; 
+  height: 0px; 
+  border-bottom: 15px solid #E32C00;
+  border-left: 15px solid #E32C00;
+}
+
+.pause-rect {
+  width: 5px; 
+  height: 15px; 
+  border-right: 5px solid #452F2A;
+  border-left: 5px solid #452F2A;
+}

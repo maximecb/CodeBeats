@@ -1,48 +1,107 @@
-<html>
-  <head>
-    <title>MusicToy</title>
-    <meta name="keywords" content="music, live, coding, programming, sequencer, synthesizer, sampler, samples, audio, html5, javascript, google chrome">
-    <script language="javascript" src="main.js"></script>
-    <script language="javascript" src="utils-misc.js"></script>
-    <script language="javascript" src="utils-html.js"></script>
-    <script language="javascript" src="canvas.js"></script>
-    <script language="javascript" src="music.js"></script>
-    <script language="javascript" src="graph.js"></script>
-    <script language="javascript" src="envelope.js"></script>
-    <script language="javascript" src="vanalog.js"></script>
-    <script language="javascript" src="sampling.js"></script>
-    <script language="javascript" src="effects.js"></script>
-    <script language="javascript" src="mixer.js"></script>
-    <script language="javascript" src="piece.js"></script>
-    <script language="javascript" src="easy-audio.js"></script>
-    <script language="javascript" src="sample-list.js"></script>
-    <link rel=stylesheet href="stylesheet.css" type="text/css">
-  </head>
-  <body bgcolor="#000000">
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Code->Beats</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="styles/bootstrap.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
 
-    <div class="title">
-    Code->Beats
-    </div>
 
-    <div style="height:10px;"></div>
-    <div align="center">
-        <div align="center">
-          <canvas id="canvas" width=640 height=340>
-            Your browser does not support the canvas element.
-          </canvas>
+<!-- GitHub ribbon -->
+<a href="https://github.com/maximecb/CodeBeats">
+    <img style="position: absolute; top: 0; right: 0; border: 0;"
+         src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"
+         alt="Fork me on GitHub">
+</a>
+
+<!-- Header -->
+<div id="top-container">
+</div>
+
+
+<!-- Toolbar -->
+<div id="toolbar" class="row">
+    <div class="pull-left">
+        <div id="controls" class="btn-group">
+            <button class="btn toolbar-btn"><div class="play-arrow"></div></button>
+            <button class="btn toolbar-btn"><div class="pause-rect"></div></button>
+            <button class="btn toolbar-btn"><div class="stop-square"></div></button>
+        </div>
+        </div>
+    
+    <div class="pull-right">
+        <div id="login-info">
+            <a id="github-login" href="https://github.com/login/oauth/authorize?client_id=2b84b08caaf4169e4e06&scope=gist&state=foo">Login using GitHub</a>
+        </div>
+        <div id="files" class="btn-group">
+            <button id="load-btn" class="btn wide-btn">Load Snippet</button>
+            <button id="save-btn" class="btn wide-btn">Save Snippet</button>
         </div>
     </div>
+</div>
 
-    <div style="height:10px;"></div>
-    <div style="margin-left:auto; margin-right:auto; text-align:justify; width:650px;">
-    MusicToy is a minimalist grid sequencer designed to make composition simple and
-    encourage experimentation.
+<!-- CodeMirror Editor -->
+<div id="editor"></div>
+
+
+<!-- Dialogs -->
+
+<div id="dim"></div>
+<div id="popup">
+    <a id="popup-close" class="pull-right" href="#">X</a>
+    <div id="popup-content">
+    
     </div>
+</div>
 
-    <div class="copyright">
-    Copyright &copy; 2012 Maxime Chevalier-Boisvert
-    </div>
 
-  </body>
+<!-- Open Snippet Form -->
+<div id="open-form">
+    <form>
+        <fieldset>
+            <legend>Load Snippet</legend>
+            <label>Gist:</label>
+            <input type="text" placeholder="enter gist…">
+            <span class="help-block">Example block-level help text here.</span>
+            <button type="submit" class="btn">Submit</button>
+        </fieldset>
+    </form>
+</div>
+
+
+<!-- Save Snippet Form -->
+<div id="save-form">
+    <form>
+        <fieldset>
+            <legend>Save Snippet</legend>
+
+        </fieldset>
+    </form>
+    <a id="save-local" href="#">Just save localy, I'll finish later.</a>
+</div>
+
+
+
+
+
+
+<!-- jQuery -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="components/jquery/jquery.min.js"><\/script>')</script>
+
+
+<!-- Codemirror -->
+<script src="components/codemirror/lib/codemirror.js"></script>
+<script src="components/codemirror/mode/javascript/javascript.js"></script>
+<link rel="stylesheet" href="components/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="components/codemirror/theme/monokai.css">
+
+<!-- Code->Beats -->
+<script src="scripts/ui.js"></script>
+
+</body>
 </html>
-
