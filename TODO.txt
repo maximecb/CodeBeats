@@ -17,13 +17,12 @@ TODO: fix drum sample mapping in drum kit
 - Remove sample-list
 
 
-TODO: makeNotes function taking string or array
+
+
+
+
+[DONE] TODO: makeNotes function taking string or array
 - makeNotes(track, notes, noteLen, breakSeq)
-
-
-
-
-
 
 [DONE] TODO: implement pause button
 

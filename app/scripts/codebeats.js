@@ -336,6 +336,20 @@ function initAudioEnv()
         return piece.makeNote(track, beatNo, note, len, vel);
     }
 
+    audioEnv.makeNotes = function (track, beatNo, notes, len, vel)
+    {
+        if (typeof notes === 'string')
+            notes = notes.split(',').map(function (n) { return Note(n); });
+
+        for (var i = 0; i < notes.length; ++i)
+        {
+            piece.makeNote(track, beatNo, notes[i], len, vel);
+            beatNo += 1;
+        }
+
+        return beatNo;
+    }
+
     return audioEnv;
 }
 
