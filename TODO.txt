@@ -12,16 +12,24 @@ TODO: play with Chrome MIDI API
 
 TODO: write JS code to interface with gist sharing system
 
-TODO: CodeMirror saving across sessions in browser db
+TODO: fix drum sample mapping in drum kit
+- If people make pieces depending on this mapping, breaking it would be bad!
+- Remove sample-list
+
 
 TODO: makeNotes function taking string or array
 - makeNotes(track, notes, noteLen, breakSeq)
 
-TODO: implement pause button
 
 
+
+
+
+[DONE] TODO: implement pause button
 
 [DONE] TODO: integrate audio code with UI code
+
+[DONE] TODO: CodeMirror saving across sessions in browser db
 
 [DONE] TODO: Add "Fork me on GitHub" link
 

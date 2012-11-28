@@ -81,7 +81,8 @@ function initAudio()
     // Sound generation handler
     var genAudio = undefined;
 
-    // TODO: play state, playing, stopped, paused
+    // Current playback state: playing, stopped or paused
+    var playState = 'STOPPED';
 
     function reset()
     {
@@ -103,20 +104,51 @@ function initAudio()
         if (audioCtx === undefined)
             return;
 
-        // If the audio isn't stopped, stop it
-        if (jsAudioNode !== undefined)
-            stopAudio()
+        if (playState === 'PAUSED')
+        {
+            pauseAudio();
+        }
 
-        // Evaluate the audio code
-        evalAudioCode(codeStr, audioEnv);
+        else
+        {
+            // If the audio isn't stopped, stop it
+            if (playState !== 'STOPPED')
+                stopAudio()
 
-        // Set the playback time on the piece to 0 (start)
-        audioEnv.piece.setTime(0);
+            // Evaluate the audio code
+            evalAudioCode(codeStr, audioEnv);
 
-        // Create a JS audio node and connect it to the destination
-        jsAudioNode = audioCtx.createJavaScriptNode(bufferSize, 2, 2);
-        jsAudioNode.onaudioprocess = genAudio;
-	    jsAudioNode.connect(audioCtx.destination);
+            // Set the playback time on the piece to 0 (start)
+            audioEnv.piece.setTime(0);
+
+            // Create a JS audio node and connect it to the destination
+            jsAudioNode = audioCtx.createJavaScriptNode(bufferSize, 2, 2);
+            jsAudioNode.onaudioprocess = genAudio;
+	        jsAudioNode.connect(audioCtx.destination);
+
+            playState = 'PLAYING';
+        }
+    }
+
+    pauseAudio = function()
+    {
+        // If audio is disabled, stop
+        if (audioCtx === undefined)
+            return;
+
+        if (playState === 'PLAYING')
+        {
+            // Disconnect the audio node
+            jsAudioNode.disconnect();
+
+            playState = 'PAUSED';
+        }
+
+        else if (playState === 'PAUSED')
+        {
+    	    jsAudioNode.connect(audioCtx.destination);
+            playState = 'PLAYING';
+        }
     }
 
     stopAudio = function ()
@@ -125,7 +157,7 @@ function initAudio()
         if (audioCtx === undefined)
             return;
 
-        if (jsAudioNode === undefined)
+        if (playState === 'STOPPED')
             return;
 
         // Notify the piece that we are stopping playback
@@ -137,6 +169,8 @@ function initAudio()
 
         // Reset the audio environment
         reset();
+
+        playState = 'STOPPED';
     }
 }
 
@@ -148,21 +182,6 @@ Initialize the basic audio code environment
 */
 function initAudioEnv()
 {
-    function addNode(audioNode)
-    {
-        return graph.addNode(audioNode);
-    }
-
-    function newTrack(instr)
-    {
-        return piece.addTrack(new Track(instr));
-    }
-
-    function makeNote(track, beatNo, note, len, vel)
-    {
-        return piece.makeNote(track, beatNo, note, len, vel);
-    }
-
     // Create the audio graph
     var graph = new AudioGraph(audioCtx.sampleRate);
 
@@ -178,10 +197,10 @@ function initAudioEnv()
     var outNode = graph.addNode(new OutNode(2));
 
     // Drum kit instrument
-    var drumKit = addNode(new SampleKit());
+    var drumKit = graph.addNode(new SampleKit());
 
     // Synth piano
-    var piano = addNode(new VAnalog(2));
+    var piano = graph.addNode(new VAnalog(2));
     piano.name = 'piano';
     piano.oscs[0].type = 'sawtooth';
     piano.oscs[0].detune = 0;
@@ -206,7 +225,7 @@ function initAudioEnv()
     piano.filterEnvAmt = 0.75;
 
     // Bass patch
-    var bass = addNode(new VAnalog(3));
+    var bass = graph.addNode(new VAnalog(3));
     bass.name = 'bass';
     bass.oscs[0].type = 'pulse';
     bass.oscs[0].duty = 0.5;
@@ -234,7 +253,7 @@ function initAudioEnv()
     bass.filterEnvAmt = 0.85;
 
     // Lead patch
-    var lead = addNode(new VAnalog(2));
+    var lead = graph.addNode(new VAnalog(2));
     lead.name = 'lead';
     lead.oscs[0].type = 'pulse';
     lead.oscs[0].duty = 0.5;
@@ -258,7 +277,7 @@ function initAudioEnv()
     lead.filterEnvAmt = 0.85;
 
     // Mixer with 32 channels
-    mixer = addNode(new Mixer(32));
+    mixer = graph.addNode(new Mixer(32));
     mixer.inVolume[0] = 1.5;
     mixer.inVolume[1] = 0.2;
     mixer.inVolume[2] = 0.5;
@@ -273,10 +292,10 @@ function initAudioEnv()
     mixer.output.connect(outNode.signal);
 
     // Create new tracks for the instruments
-    drumTrack = newTrack(drumKit);
-    pianoTrack = newTrack(piano);
-    bassTrack = newTrack(bass);
-    leadTrack = newTrack(lead);
+    drumTrack = piece.addTrack(new Track(drumKit));
+    pianoTrack = piece.addTrack(new Track(piano));
+    bassTrack = piece.addTrack(new Track(bass));
+    leadTrack = piece.addTrack(new Track(lead));
 
     // Load all the drum samples available
     var noteNo = 0;
@@ -293,18 +312,31 @@ function initAudioEnv()
         //piece.makeNote(drumTrack, 2 * noteNo, noteNo-1);
     }
 
-    return {
+    var audioEnv =  {
         graph: graph,
         piece: piece,
         drumKit: drumKit,
         piano: piano,
         lead: lead,
-        bass: bass,
+        bass: bass
+    };
 
-        addNode: addNode,
-        newTrack: newTrack,
-        makeNote: makeNote,
+    audioEnv.addNode = function (audioNode)
+    {
+        return graph.addNode(audioNode);
     }
+
+    audioEnv.newTrack = function (instr)
+    {
+        return piece.addTrack(new Track(instr));
+    }
+
+    audioEnv.makeNote = function (track, beatNo, note, len, vel)
+    {
+        return piece.makeNote(track, beatNo, note, len, vel);
+    }
+
+    return audioEnv;
 }
 
 /**
