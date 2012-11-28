@@ -4,10 +4,13 @@ import wave
 import struct
 import os
 
-sampleDir = 'app/samples'
-outFile = 'app/scripts/sample-list.js'
+appDir = 'app'
+sampleDir = 'samples'
+outFile = 'scripts/sample-list.js'
 
 def main():
+
+    os.chdir('app')
 
     sampleList = []
 

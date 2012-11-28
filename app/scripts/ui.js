@@ -86,6 +86,9 @@
   // init
   // Initialize the UI
   function init() {
+
+    console.log('ui init function');
+
     // initialize locals
     $dim        = $( "#dim" );
     $popup      = $( "#popup" );
@@ -108,7 +111,7 @@
     
     // Update UI
     ui.sizeCM();
-    
+
     // ui event listeners
     $( "#popup-close" ).click( function(){
       ui.hidePopup();
@@ -120,8 +123,12 @@
     $( "#load-btn" ).click( function() {
       ui.showPopup( $("#open-form") );
     });
+
+    // play/pause/stop buttons
+    $('#play-btn').click(function () { playAudio(ui.cm.getValue()); });
+    $('#pause-btn').click(function () { pauseAudio(); });
+    $('#stop-btn').click(function () { stopAudio(); });
   }
-  
   
   // Window event listeners
   $( init );

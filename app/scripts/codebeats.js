@@ -37,22 +37,15 @@
 *
 *****************************************************************************/
 
-//============================================================================
-// Page interface code
-//============================================================================
-
-/**
-Called after page load to initialize needed resources
-*/
-function init()
+function initAudio()
 {
     // Create a global audio context
-    if (this.hasOwnProperty('AudioContext') === true)
+    if (window.hasOwnProperty('AudioContext') === true)
     {
         //console.log('Audio context found');
         audioCtx = new AudioContext();
     }
-    else if (this.hasOwnProperty('webkitAudioContext') === true)
+    else if (window.hasOwnProperty('webkitAudioContext') === true)
     {
         //console.log('WebKit audio context found');
         audioCtx = new webkitAudioContext();
@@ -62,46 +55,49 @@ function init()
         audioCtx = undefined;
     }
 
-    // If an audio context was created
-    if (audioCtx !== undefined)
+    // If no audio context was created
+    if (audioCtx === undefined)
     {
-        // Get the sample rate for the audio context
-        var sampleRate = audioCtx.sampleRate;
-
-        console.log('Sample rate: ' + audioCtx.sampleRate);
-
-        // Size of the audio generation buffer
-        var bufferSize = 2048;
-    }
-    else
-    {
-        alert(
+        error(
             'No Web Audio API support. Sound will be disabled. ' +
             'Try this page in the latest version of Chrome'
         );
-
-        var sampleRate = 44100;
     }
 
-    // Create the global audio graph
-    graph = new AudioGraph(sampleRate);
+    // Get the sample rate for the audio context
+    var sampleRate = audioCtx.sampleRate;
 
-    // Create the global piece
-    piece = new Piece(graph);
+    console.log('Sample rate: ' + audioCtx.sampleRate);
 
-    // Initialize the synth network
-    initSynth();
-
-    // Create an audio generation event handler
-    var genAudio = piece.makeHandler();
+    // Size of the audio generation buffer
+    var bufferSize = 2048;
 
     // JS audio node to produce audio output
     var jsAudioNode = undefined;
 
-    playAudio = function ()
+    // Environment in which code is evaluated
+    var audioEnv = undefined;
+
+    // Sound generation handler
+    var genAudio = undefined;
+
+    // TODO: play state, playing, stopped, paused
+
+    function reset()
     {
-        // Order the audio graph nodes
-        graph.orderNodes();
+        // Initialize the audio code environment
+        audioEnv = initAudioEnv();
+
+        // Create an audio generation event handler
+        genAudio = audioEnv.piece.makeHandler();
+    }
+
+    // Setup the initial audio environment
+    reset();
+
+    playAudio = function (codeStr)
+    {
+        console.log('entering playAudio');
 
         // If audio is disabled, stop
         if (audioCtx === undefined)
@@ -111,8 +107,11 @@ function init()
         if (jsAudioNode !== undefined)
             stopAudio()
 
+        // Evaluate the audio code
+        evalAudioCode(codeStr, audioEnv);
+
         // Set the playback time on the piece to 0 (start)
-        piece.setTime(0);
+        audioEnv.piece.setTime(0);
 
         // Create a JS audio node and connect it to the destination
         jsAudioNode = audioCtx.createJavaScriptNode(bufferSize, 2, 2);
@@ -130,42 +129,56 @@ function init()
             return;
 
         // Notify the piece that we are stopping playback
-        piece.stop();
+        audioEnv.piece.stop();
 
         // Disconnect the audio node
         jsAudioNode.disconnect();
         jsAudioNode = undefined;
+
+        // Reset the audio environment
+        reset();
     }
-
-
-    // TODO: temporary
-    playAudio();
-
-
 }
 
-// Attach the init function to the load event
-if (window.addEventListener)
-    window.addEventListener('load', init, false); 
-else if (document.addEventListener)
-    document.addEventListener('load', init, false); 
-else if (window.attachEvent)
-    window.attachEvent('onload', init); 
-
-// Create an alias of the eval function so as to
-// evaluate code in the global context
-var globalEval = eval;
+// Register the audio init function
+$(initAudio);
 
 /**
-Initialize the basic synthesizer configuration
+Initialize the basic audio code environment
 */
-function initSynth()
-{  
-    // Sound output node
+function initAudioEnv()
+{
+    function addNode(audioNode)
+    {
+        return graph.addNode(audioNode);
+    }
+
+    function newTrack(instr)
+    {
+        return piece.addTrack(new Track(instr));
+    }
+
+    function makeNote(track, beatNo, note, len, vel)
+    {
+        return piece.makeNote(track, beatNo, note, len, vel);
+    }
+
+    // Create the audio graph
+    var graph = new AudioGraph(audioCtx.sampleRate);
+
+    // Create the piece
+    var piece = new Piece(graph);
+
+    // Default piece configuration
+    piece.beatsPerMin = 137;
+    piece.beatsPerBar = 4;
+    piece.noteVal = 4;
+
+    // Create a stereo sound output node
     var outNode = graph.addNode(new OutNode(2));
 
     // Drum kit instrument
-    drumKit = addNode(new SampleKit());
+    var drumKit = addNode(new SampleKit());
 
     // Synth piano
     var piano = addNode(new VAnalog(2));
@@ -173,25 +186,19 @@ function initSynth()
     piano.oscs[0].type = 'sawtooth';
     piano.oscs[0].detune = 0;
     piano.oscs[0].volume = 0.75;
-
     piano.oscs[0].env.a = 0;
     piano.oscs[0].env.d = 0.67;
     piano.oscs[0].env.s = 0.25;
     piano.oscs[0].env.r = 0.50;
-    
     piano.oscs[1].type = 'pulse';
     piano.oscs[1].duty = 0.15;
     piano.oscs[1].detune = 1400;
     piano.oscs[1].volume = 1;
-
     piano.oscs[1].sync = true;
     piano.oscs[1].syncDetune = 0;
-
     piano.oscs[1].env = piano.oscs[0].env;
-    
     piano.cutoff = 0.1;
     piano.resonance = 0;
-    
     piano.filterEnv.a = 0;
     piano.filterEnv.d = 5.22;
     piano.filterEnv.s = 0;
@@ -199,34 +206,27 @@ function initSynth()
     piano.filterEnvAmt = 0.75;
 
     // Bass patch
-    bass = addNode(new VAnalog(3));
+    var bass = addNode(new VAnalog(3));
     bass.name = 'bass';
-
     bass.oscs[0].type = 'pulse';
     bass.oscs[0].duty = 0.5;
     bass.oscs[0].detune = -1195;
     bass.oscs[0].volume = 1;
-
     bass.oscs[1].type = 'pulse';
     bass.oscs[1].duty = 0.5;
     bass.oscs[1].detune = -1205;
     bass.oscs[1].volume = 1;
-
     bass.oscs[2].type = 'sawtooth';
     bass.oscs[2].detune = 0;
     bass.oscs[2].volume = 1;
-
     bass.oscs[0].env.a = 0;
     bass.oscs[0].env.d = 0.3;
     bass.oscs[0].env.s = 0.1;
     bass.oscs[0].env.r = 0.2;
-
     bass.oscs[1].env = bass.oscs[0].env;
     bass.oscs[2].env = bass.oscs[0].env;
-
     bass.cutoff = 0.3;
     bass.resonance = 0;
-   
     bass.filterEnv.a = 0;
     bass.filterEnv.d = 0.25;
     bass.filterEnv.s = 0.25;
@@ -234,29 +234,23 @@ function initSynth()
     bass.filterEnvAmt = 0.85;
 
     // Lead patch
-    lead = addNode(new VAnalog(2));
+    var lead = addNode(new VAnalog(2));
     lead.name = 'lead';
-
     lead.oscs[0].type = 'pulse';
     lead.oscs[0].duty = 0.5;
     lead.oscs[0].detune = -1195;
     lead.oscs[0].volume = 1;
-
     lead.oscs[1].type = 'pulse';
     lead.oscs[1].duty = 0.5;
     lead.oscs[1].detune = -1205;
     lead.oscs[1].volume = 1;
-
     lead.oscs[0].env.a = 0;
     lead.oscs[0].env.d = 0.1;
     lead.oscs[0].env.s = 0;
     lead.oscs[0].env.r = 0;
-
     lead.oscs[1].env = lead.oscs[0].env;
-
     lead.cutoff = 0.3;
     lead.resonance = 0;
-   
     lead.filterEnv.a = 0;
     lead.filterEnv.d = 0.2;
     lead.filterEnv.s = 0;
@@ -278,12 +272,7 @@ function initSynth()
     lead.output.connect(mixer.input3);
     mixer.output.connect(outNode.signal);
 
-    // Default piece configuration
-    piece.beatsPerMin = 137;
-    piece.beatsPerBar = 4;
-    piece.noteVal = 4;
-
-    // Create tracks for the instruments
+    // Create new tracks for the instruments
     drumTrack = newTrack(drumKit);
     pianoTrack = newTrack(piano);
     bassTrack = newTrack(bass);
@@ -304,37 +293,32 @@ function initSynth()
         //piece.makeNote(drumTrack, 2 * noteNo, noteNo-1);
     }
 
-    /*
-    drumKit.mapSample('C4', 'samples/drum/biab_trance_kick_4.wav', 2.2);
-    drumKit.mapSample('C#4', 'samples/drum/biab_trance_snare_2.wav', 2);
-    drumKit.mapSample('D4', 'samples/drum/biab_trance_hat_6.wav', 2);
-    drumKit.mapSample('D#4', 'samples/drum/biab_trance_clap_2.wav', 3);
-    */
+    return {
+        graph: graph,
+        piece: piece,
+        drumKit: drumKit,
+        piano: piano,
+        lead: lead,
+        bass: bass,
 
+        addNode: addNode,
+        newTrack: newTrack,
+        makeNote: makeNote,
+    }
+}
 
+/**
+Eval and run the audio code
+*/
+function evalAudioCode(codeStr, audioEnv)
+{  
+    // Evaluate the code string in the audio environment
+    with (audioEnv)
+    {
+        eval(codeStr);
+    }    
 
-    
-    piece.makeNote(pianoTrack, 0, 'C4');
-    piece.makeNote(pianoTrack, 1, 'D4');
-    piece.makeNote(pianoTrack, 2, 'E4');
-    
-
-
-    /*
-    makeNote(bassTrack, 0, 'C3');
-    makeNote(bassTrack, 1, 'C2');
-    makeNote(bassTrack, 2, 'C2');
-    makeNote(bassTrack, 3, 'C2');
-    makeNote(bassTrack, 4, 'C2');
-
-    makeNote(bassTrack, 5, 'B1');
-    makeNote(bassTrack, 6, 'B1');
-    makeNote(bassTrack, 7, 'B1');
-    makeNote(bassTrack, 8, 'B1');
-    makeNote(bassTrack, 9, 'B2');
-    */
-
-
-
+    // Order the audio graph nodes
+    audioEnv.graph.orderNodes();
 }
 

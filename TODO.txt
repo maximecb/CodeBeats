@@ -17,10 +17,11 @@ TODO: CodeMirror saving across sessions in browser db
 TODO: makeNotes function taking string or array
 - makeNotes(track, notes, noteLen, breakSeq)
 
+TODO: implement pause button
 
 
 
-
+[DONE] TODO: integrate audio code with UI code
 
 [DONE] TODO: Add "Fork me on GitHub" link
 
