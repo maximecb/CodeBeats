@@ -3,7 +3,8 @@
 cd app
 
 # basic setup
-mkdir components && cd components
+mkdir components
+cd components
 # folders for each dep
 mkdir jquery
 mkdir codemirror
@@ -21,7 +22,8 @@ curl -o codemirror.css https://raw.github.com/marijnh/CodeMirror/master/lib/code
 cd ../theme
 curl -o monokai.css https://raw.github.com/marijnh/CodeMirror/master/theme/monokai.css
 cd ../mode
-mkdir javascript && cd javascript
+mkdir javascript
+cd javascript
 curl -o javascript.js https://raw.github.com/marijnh/CodeMirror/master/mode/javascript/javascript.js
 
 

@@ -5,28 +5,31 @@ TODO: add some information and/or FAQ about CodeBeats
 
 TODO: prepare some code examples, with share-able links
 
-TODO: create sampler with initial sample bank
-
-TODO: simplify MusicToy API
-- One global sound graph/net, auto-updated on connection of devices
-- One global piece object
-- Various helper functions
-- Shorter names
+TODO: play with Chrome MIDI API
+- Way to map input events to track
+- Do nothing if API not supported
+- Default behaviors for vanalog, mixer
 
 TODO: write JS code to interface with gist sharing system
 
 TODO: CodeMirror saving across sessions in browser db
 
-TODO: Add "Fork me on GitHub" link
+TODO: makeNotes function taking string or array
+- makeNotes(track, notes, noteLen, breakSeq)
 
-TODO: create initial page design with CodeMirror view
+
+
+
+
+
+[DONE] TODO: Add "Fork me on GitHub" link
+
+[DONE] TODO: create initial page design with CodeMirror view
 - "Run", "Mute" buttons
 
+[DONE] TODO: create drum kit sampler with initial sample bank
 
-
-TODO: synth piano instrument, call "piano", connect to mixer
-
-
+[DONE] TODO: synth piano instrument, call "piano", connect to mixer
 
 [DONE] TODO: simple global API, easyaudio.js
 - newTrack()
