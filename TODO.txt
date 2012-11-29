@@ -10,16 +10,21 @@ TODO: play with Chrome MIDI API
 - Do nothing if API not supported
 - Default behaviors for vanalog, mixer
 
-TODO: write JS code to interface with gist sharing system
+TODO: write JS/server code to interface with gist sharing system
+
+TODO: live coding prompt/buffer?
 
 TODO: fix drum sample mapping in drum kit
 - If people make pieces depending on this mapping, breaking it would be bad!
 - Remove sample-list
 
 
+TODO: instrument from sample-producing function => FunInstr
 
 
 
+[DONE] TODO: shaded play/stop/pause buttons to reflect current state
+- Use the disabled button attribute!
 
 [DONE] TODO: makeNotes function taking string or array
 - makeNotes(track, notes, noteLen, breakSeq)

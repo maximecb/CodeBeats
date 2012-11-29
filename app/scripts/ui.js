@@ -125,9 +125,24 @@
     });
 
     // play/pause/stop buttons
-    $('#play-btn').click(function () { playAudio(ui.cm.getValue()); });
-    $('#pause-btn').click(function () { pauseAudio(); });
-    $('#stop-btn').click(function () { stopAudio(); });
+    $('#play-btn').click(function () {    
+        $('#play-btn').attr('disabled', 'disabled');
+        $('#pause-btn').removeAttr('disabled');
+        $('#stop-btn').removeAttr('disabled');
+        playAudio(ui.cm.getValue());
+    });
+    $('#pause-btn').click(function () {
+        $('#play-btn').removeAttr('disabled');
+        $('#pause-btn').attr('disabled', 'disabled');
+        $('#stop-btn').removeAttr('disabled');
+        pauseAudio(); 
+    });
+    $('#stop-btn').click(function () { 
+        $('#play-btn').removeAttr('disabled');
+        $('#pause-btn').attr('disabled', 'disabled');
+        $('#stop-btn').attr('disabled', 'disabled');
+        stopAudio(); 
+    });
   }
   
   // Window event listeners
