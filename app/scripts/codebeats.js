@@ -339,11 +339,21 @@ function initAudioEnv()
     audioEnv.makeNotes = function (track, beatNo, notes, len, vel)
     {
         if (typeof notes === 'string')
-            notes = notes.split(',').map(function (n) { return Note(n); });
+        {
+            notes = notes.split(',').map(function (n) { 
+                n = n.trim();
+                if (n === '')
+                    return undefined;
+                else
+                    return Note(n); 
+            });
+        }
 
         for (var i = 0; i < notes.length; ++i)
         {
-            piece.makeNote(track, beatNo, notes[i], len, vel);
+            var note = notes[i];
+            if (note instanceof Note)
+                piece.makeNote(track, beatNo, note, len, vel);
             beatNo += 1;
         }
 
