@@ -38,8 +38,10 @@
 *****************************************************************************/
 
 //============================================================================
-// UI Liv Code
+//      UI Lib Code
 //============================================================================
+
+// TODO: everything in global scope for testing via console, uncomment
 //(function()
 //{
 
@@ -51,12 +53,13 @@
     Take an object of name/selector pairs and
     create jQuery objects from them
     */
-    function makeJQObjects()
+    function makeJQObjects($el)
     {
         for (var id in $el)
         {
             if ($el.hasOwnProperty(id)) $el[id] = $($el[id]);
         }
+        return $el;
     }
     
     /*
@@ -75,9 +78,11 @@
     
     /**
     Make a function that will display the given error message.
-    Useful in callbacks, etc. Handler is a callback that will be called.
+    Useful in callbacks, etc. Handler is a callback that will be called
+    no matter what. ok_handler will be called when the user clicks "ok"
+    on the error dialog.
     */
-    function makeErrorMsg(msg, handler)
+    function makeErrorMsg(msg, handler, ok_handler)
     {
         return function ()
         {
@@ -86,6 +91,11 @@
             $el.error_msg_text.text(msg);
             centerPopup();
             if (handler) handler();
+            if (ok_handler)
+                $("#error-ok-btn").one("click", {msg: msg}, function (data)
+                {
+                    ok_handler(data);
+                });
         }
     }
 
@@ -214,7 +224,8 @@
      */
     function clearAuthArgs()
     {
-        // TODO: have this replace any non-auth related args
+        // TODO: have this preserve any non-auth related args
+        // like gist=, file= etc
         window.location.hash = "";
         document.cookie = "gha=" + no_cookie;
     }
@@ -227,7 +238,7 @@
     {
         atoken = null;
         logged_in = false;
-        clearAuthArgs()
+        clearAuthArgs();
         window.location.reload();
         return false;
     }
@@ -288,61 +299,64 @@
         var req = $.get(
             "https://api.github.com/gists/" + gist_id + "?" +
             "access_token=" + atoken + "&" +
-            "client_id=" + "<% CLIENT_ID %>"
+            "client_id=" + client_id
             , post_data);
         return req;
     }
-    
+
+    /**
+    Get the files for a specific gist
+    */
     function getGistFiles(id)
     {
         var req = new $.Deferred();
-        
         getGistOb()
             .success(function(data){
                 req.resolve(data.files);
             })
-            .fail(function(){
-                alert("ERROR!");
-            })
+            .fail(github_api_error);
+        return req;
     }
 
-    
-    function saveSnippet( gist_id, file_name, content )
+
+    /**
+    Save a snippet to GitHub
+    */
+    function saveSnippet(gist_id, file_name, content)
     {
+        // TODO: right now this just saves to a new gist, not update one
+        // TODO: let the user enter a description
         var files = {}
-        files[ file_name ] = { content: content };
+        files[file_name] = { content: content };
 
         var post_data = {
             "public": true,
             description : "Created by CodeBeats.",
             files: files,
         }
+        
         post_data = JSON.stringify(post_data);
 
         // make the GET request
         var req = $.post(
-        "https://api.github.com/gists?" +
-        "access_token=" + atoken + "&" +
-        "client_id=" + "<% CLIENT_ID %>"
-        , post_data);
+            "https://api.github.com/gists?" +
+            "access_token=" + atoken + "&" +
+            "client_id=" + client_id
+            , post_data);
 
         // success
         req.success(function(data)
         {
-            console.log(data);
+            saveRecentGist(data.id);
         });
 
         // failure
-        req.fail(function ()
-        {
-            // TODO: better errors
-            alert("ERROR!");
-        });
+        req.fail(github_api_error);
+
         return false;
     }
 
     function handleSave() {
-        saveSnippet( null, "cb.js", ui.cm.getValue() );
         hidePopup();
         return false;
     }
@@ -353,38 +367,25 @@
     */
     function getUserInfo()
     {
-        // the data for the login GET request
-        // NOTE: <% CLIENT_ID %> must be replaced by a real
-        // one before deployment
         var data = {
             access_token: atoken,
-            client_id: "<% CLIENT_ID %>"
+            client_id: client_id
         }
 
         // make the GET request
         var req = $.get("https://api.github.com/user", data);
-
-        // success
-        req.success(function(data)
-        {
-            user_info = data;
-            showUserInfo();
-        });
-
-        // failure
-        req.fail(function ()
-        {
-            // TODO: better errors
-            alert("ERROR!");
-        });
+        req.success(showUserInfo);
+        req.fail(github_api_error);
     }
     
     /**
     Display the user info in a little badge in the toolbar
     */
-    function showUserInfo()
+    function showUserInfo( info )
     {
+        user_info = info;
         if (!user_info) return false;
+        // display user info in a little badge
         $("#github-login").hide();
         $("#user-info").html("" +
             "<a href='#' id='log-out'>Log Out</a>" + 
@@ -397,7 +398,7 @@
     }
 
 //============================================================================
-// UI Main
+//      UI Main
 //============================================================================
 
 
@@ -420,6 +421,9 @@
     var user_info = null;
     // bad hacker, no cookie
     var no_cookie  = "(ಠ_ಠ)"
+    // the client id for the app
+    // NOTE: this needs to be changed for a real one
+    var client_id = "<% CLIENT_ID %>";
 
     // ui elements
     var $el = {
@@ -446,15 +450,29 @@
         // link on Save Gist popup
         save_local_link : "#save-local"
     }
+    
+    /**
+    Error functions
+    */
+    
+    // Generic error function used for problems connecting to github
+    // TODO: make this more robust and specific for various errors
+    // for now all errors will just say this and log you out.
+    var gh_error_msg = "There was a problem connecting to GitHub."
+    var github_api_error =
+        makeErrorMsg(gh_error_msg, null, logOut);
+
 
     /**
     Initialize all ui functions, elements, etc
     */
     function init() {
         // make jQuery objects for all the elements we need upfront
-        makeJQObjects();
+        $el = makeJQObjects($el);
 
         // create code mirror editor
+        // TODO: keep CM enclosed in this scope to prevent
+        // user code monkeying with it?
         ui.cm = CodeMirror($el.editor.get(0), {
             value: getSavedCode(),
             mode: "javascript",
@@ -476,20 +494,19 @@
         ui event listeners
         */
 
-        // close buttons shared by all popup
+        // close buttons shared by all popups
         $(".popup-close").click(hidePopup);
         $(".cancel-btn").click(hidePopup);
 
         // save Gist button
-        $("#save-btn").click( function() {
+        $("#save-btn").click(function() {
             showPopup( $("#save-form") );
             return false;
         });
         
         // open Gist button
-        $("#load-btn").click( function() {
+        $("#load-btn").click(function() {
             showPopup( $("#open-form") );
-            // TODO: cache jQuery objects
             displayRecentGists($("#open-recent"), $("#open-no-recent"));
             return false;
         });
