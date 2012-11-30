@@ -20,9 +20,43 @@ body {
 #login-info {
   height:       30px;
   float:        left;
-  margin-left: -150px;
+  margin-left: -180px;
   padding-top:  6px;
 }
+
+#user-info {
+  display: none;
+  background-color: #cccccc;
+  padding: 5px;
+  border-radius: 5px;
+  position: relative;
+  top: -11px;
+  left: -15px;
+  width: 150px;
+}
+
+#user-info img {
+  width: 30px;
+  height: 30px;
+  position: relative;
+  top: 0px;
+  left: 10px;
+}
+
+#user-info a {
+  position: relative;
+  font-size: 13px;
+  top: 8px;
+  left: 7px;
+}
+
+#user-info small {
+  position: relative;
+  top: -8px;
+  left: -40px;
+  font-weight: bold;
+}
+
 
 #github-login {
   float: right;
@@ -64,24 +98,29 @@ body {
 }
 
 
-#popup-close {
+.popup-close {
   margin-top: -10px;
   margin-right: -8px;
   font-size: 20px;
 }
 
-#popup {
+.popup {
   display: none;
   background-color: #eeeeee;
   position: absolute;
+  /* TODO: minwidth? */
   /*width:   400px;*/
-  height:  300px;
+  /*height:  300px;*/
   z-index: 15;
   top:     50%;
   left:    50%;
   margin:  -150px 0 0 -200px;
-  padding:  20px;
+  padding: 20px;
   border-radius: 10px;
+}
+
+#open-choose-file {
+    display: none;
 }
 
 .toolbar-btn {

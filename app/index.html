@@ -33,11 +33,12 @@
     
     <div class="pull-right">
         <div id="login-info">
-            <a id="github-login" href="https://github.com/login/oauth/authorize?client_id=<% CLIENT_ID %>&scope=gist">Login using GitHub</a>
+            <a id="github-login" href="https://github.com/login/oauth/authorize?client_id=<% CLIENT_ID %>&state=xviv">Login using GitHub</a>
+            <div id="user-info"></div>
         </div>
         <div id="files" class="btn-group">
-            <button id="load-btn" class="btn wide-btn">Load Snippet</button>
-            <button id="save-btn" class="btn wide-btn">Save Snippet</button>
+            <button id="load-btn" class="btn wide-btn">Load Gist</button>
+            <button id="save-btn" class="btn wide-btn">Save Gist</button>
         </div>
     </div>
 </div>
@@ -48,35 +49,62 @@
 <!-- Dialogs -->
 
 <div id="dim"></div>
-<div id="popup">
-    <a id="popup-close" class="pull-right" href="#">X</a>
-    <div id="popup-content">
-    
-    </div>
-</div>
 
-<!-- Open Snippet Form -->
-<div id="open-form">
+
+<!-- Open Gist Form -->
+<div id="open-form" class="popup">
+    <a class="popup-close pull-right" href="#">X</a>
     <form>
-        <fieldset>
-            <legend>Load Snippet</legend>
-            <label>Gist:</label>
+        <fieldset id="open-choose-gist">
+            <legend>Choose Gist</legend>
+            <label>Recent Gists:</label>
+            <span id="open-no-recent"
+                  class="help-block">You have no recent gists.</span>
+            <select id="open-recent" multiple="multiple">
+
+            </select>
+            <label><b>OR</b></label>
+
+            <label>Gist ID:</label>
             <input type="text" placeholder="enter gist…">
-            <span class="help-block">Example block-level help text here.</span>
-            <button type="submit" class="btn">Submit</button>
+            <div class="btn-group">
+                <button class="btn cancel-btn">Cancel</button>
+                <button class="btn">Next</button>
+            </div>
+        </fieldset>
+        <fieldset id="open-choose-file">
         </fieldset>
     </form>
+    <a id="load-local" href="#">Just load what I have saved locally.</a>
 </div>
 
-<!-- Save Snippet Form -->
-<div id="save-form">
+<!-- Save Gist Form -->
+<div id="save-form" class="popup">
+    <a class="popup-close pull-right" href="#">X</a>
     <form>
         <fieldset>
-            <legend>Save Snippet</legend>
-
+            <legend>Save Gist</legend>
+            <button id="confirm-save" class="btn">Save</button>
         </fieldset>
     </form>
     <a id="save-local" href="#">Just save localy, I'll finish later.</a>
+</div>
+
+
+<!-- Error Message -->
+<div id="error-msg" class="popup">
+    <a class="popup-close pull-right" href="#">X</a>
+    <form>
+        <fieldset>
+            <legend>Error</legend>
+            <label><b>There was an error:</b></label>
+            <span id="error-msg-text"
+                  class="help-block"></span>
+            <div class="btn-group">
+                <button class="btn cancel-btn">OK</button>
+            </div>
+        </fieldset>
+    </form>
 </div>
 
 <!-- jQuery -->
