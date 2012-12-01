@@ -65,6 +65,7 @@ body {
 
 #toolbar {
   background-color: #eeeeee;
+  min-width: 500px;
   padding:          10px;
   padding-bottom:   3px;
   margin:           0px;

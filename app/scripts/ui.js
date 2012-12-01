@@ -84,21 +84,43 @@
     */
     function makeErrorMsg(msg, handler, ok_handler)
     {
-        return function ()
+        return function (data)
         {
+            hidePopup();
             $el.dim.show();
             $el.error_msg.show();
             $el.error_msg_text.text(msg);
             centerPopup();
-            if (handler) handler();
+            if (handler) handler(data, msg);
             if (ok_handler)
-                $("#error-ok-btn").one("click", {msg: msg}, function (data)
+                $("#error-ok-btn").one("click", {msg: msg, data: data}, function (evt_data)
                 {
-                    ok_handler(data);
+                    ok_handler(evt_data);
                 });
+        return false;
         }
     }
 
+
+
+    /**
+    Display an info message.
+    NOTE: msg can be HTML
+    */
+    function showInfoMsg(msg, legend, ok_handler)
+    {
+        legend = legend || "";
+        $el.dim.show();
+        $el.info_msg.show();
+        $el.info_msg_text.html(msg);
+        $el.info_msg_legend.text(legend);
+        centerPopup();
+        if (ok_handler)
+            $("#info-ok-btn").one("click", {msg: msg}, function (data)
+            {
+                ok_handler(data);
+            });
+    }
 
 
     /*      Resizing/Layout     */
@@ -273,20 +295,26 @@
     {
         var recent = getRecentGists();
         var length = recent.length;
+        var val = null;
+        
         if (length)
         {
             $select.empty();
             while (length--)
             {
-                $select.prepend("<option>" + recent[length] + "</option>")
+                val = recent[length]
+                $select.prepend("<option value='" + val +
+                                "'>" + val + "</option>")
             }
             $nag.hide();
             $select.show();
+            return true;
         }
         else
         {
             $nag.show();
             $select.hide();
+            return false;
         }
     }
 
@@ -322,16 +350,15 @@
     /**
     Save a snippet to GitHub
     */
-    function saveSnippet(gist_id, file_name, content)
+    function saveSnippet(gist_id, file_name, desc, content, cb)
     {
-        // TODO: right now this just saves to a new gist, not update one
-        // TODO: let the user enter a description
         var files = {}
         files[file_name] = { content: content };
 
+        // TODO: let user set public
         var post_data = {
             "public": true,
-            description : "Created by CodeBeats.",
+            description : desc + "\n --  Created by CodeBeats.",
             files: files,
         }
         
@@ -339,7 +366,9 @@
 
         // make the GET request
         var req = $.post(
-            "https://api.github.com/gists?" +
+            "https://api.github.com/gists" +
+            ((gist_id) ? "/" + gist_id : "") +
+            "?" +
             "access_token=" + atoken + "&" +
             "client_id=" + client_id
             , post_data);
@@ -348,16 +377,12 @@
         req.success(function(data)
         {
             saveRecentGist(data.id);
+            if (cb) cb(data);
         });
 
         // failure
         req.fail(github_api_error);
 
-        return false;
-    }
-
-    function handleSave() {
-        hidePopup();
         return false;
     }
     
@@ -377,7 +402,99 @@
         req.success(showUserInfo);
         req.fail(github_api_error);
     }
-    
+
+//============================================================================
+//      UI Display/Event handling Functions
+//============================================================================
+
+    /**
+    Handle disabling "recent gists" when the "save to new gist" is checked
+     */
+    function saveNewGistToggle()
+    {
+            if ($("#save-create-new").prop("checked"))
+            {
+                $("#save-recent").attr("disabled", "disabled");
+            }
+            else
+            {
+                $("#save-recent").removeAttr("disabled");
+            }
+        }
+
+    /**
+    Display the promp to save, setup ui elements
+    */
+    function setupSave()
+    {
+        $("#save-gist-details").hide();
+        $("#save-choose-gist").show();
+        showPopup( $("#save-form") );
+        var recent =
+            displayRecentGists($("#save-recent"), $("#save-no-recent"));
+        if (!recent)
+        {
+            $("#save-create-new").prop("checked", true);
+        }
+        else
+        {
+            $("#save-create-new").prop("checked", false);
+        }
+        saveNewGistToggle();
+        // size may have changed
+        centerPopup();
+        return false;
+    }
+
+    /**
+    Finalize options for saving
+    */
+    function confirmSave()
+    {
+        $("#save-choose-gist").hide();
+        $("#save-gist-details").show();
+        return false;
+    }
+
+
+    /**
+    Save gist, handle response
+     */
+    function handleSave()
+    {
+
+        var id = null;
+        var file_name = $("#save-gist-filename").val();
+        var desc = $("#save-gist-desc").val();
+
+        if ( !file_name )
+        {
+            $("#save-gist-filename").focus();
+            return false;
+        }
+        
+
+        function cb(data)
+        {
+            hidePopup();
+            showInfoMsg("Your code has been saved to: " +
+                        "<a href='"  + data.html_url + "'>" +
+                        data.html_url + "</a>",
+                        "Gist Saved");
+        }
+        
+        if ($("#save-create-new").prop("checked"))
+        {
+            saveSnippet(null, file_name, desc, ui.cm.getValue(), cb);
+        }
+        else{
+            id = $("#save-recent").val();
+            if (!id) return setupSave();
+            saveSnippet(id, file_name, desc, ui.cm.getValue(), cb);
+        }
+        return false;
+    }
+
     /**
     Display the user info in a little badge in the toolbar
     */
@@ -424,6 +541,11 @@
     // the client id for the app
     // NOTE: this needs to be changed for a real one
     var client_id = "<% CLIENT_ID %>";
+    
+    // the currently selected gist
+    var gist = null;
+    // the currently selected file
+    var file = null;
 
     // ui elements
     var $el = {
@@ -435,6 +557,12 @@
         error_msg : "#error-msg",
         // container for error text
         error_msg_text :"#error-msg-text",
+        // popup for info message
+        info_msg : "#info-msg",
+        // container for info text
+        info_msg_text :"#info-msg-text",
+        // title for info message
+        info_msg_legend :"#info-msg-legend",
         // the container for the CM editor
         editor : "#editor",
         // play button in toolbar
@@ -499,10 +627,10 @@
         $(".cancel-btn").click(hidePopup);
 
         // save Gist button
-        $("#save-btn").click(function() {
-            showPopup( $("#save-form") );
-            return false;
-        });
+        $("#save-btn").click(setupSave);
+        $("#save-next-btn").click(confirmSave);
+        $("#save-confirm-btn").click(handleSave);
+        $("#save-create-new").change(saveNewGistToggle);
         
         // open Gist button
         $("#load-btn").click(function() {
