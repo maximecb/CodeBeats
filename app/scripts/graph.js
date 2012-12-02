@@ -358,6 +358,7 @@ AudioGraph.prototype.orderNodes = function ()
     }
 
     console.log('Num edges: ' + numEdges);
+    console.log('Num nodes: ' + this.nodes.length);
 
     // While S not empty
     while (S.length > 0)

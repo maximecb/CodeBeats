@@ -94,6 +94,26 @@ function Mixer(numInputs, numChans)
 }
 Mixer.prototype = new AudioNode();
 
+Mixer.prototype.connect = function (output, volume)
+{
+    if (volume === undefined)
+        volume = 1;
+
+    for (var inIdx = 0; inIdx < this.inputs.length; ++inIdx)
+    {
+        var input = this.inputs[inIdx];
+
+        if (!input.src)
+        {
+            output.connect(input);
+            this.inVolume[inIdx] = volume;
+            return;
+        }
+    }
+
+    error('no mixer inputs available');
+}
+
 /**
 Update the outputs based on the inputs
 */

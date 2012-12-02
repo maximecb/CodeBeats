@@ -18,18 +18,31 @@ TODO: fix drum sample mapping in drum kit
 - If people make pieces depending on this mapping, breaking it would be bad!
 - Remove sample-list
 
-TODO: instrument from sample-producing function => FunInstr
+TODO: Code->Beats logo
 
 TODO: Add FAQ, Tutorial links
 
-TODO: Code->Beats logo
+
+
+TODO: graph, find all nodes from output node, remove need to add to graph ***
 
 
 
+[DONE] TODO: instrument from sample-producing function => FunInstr
 
+    var fInstr = addNode(new FnInstr(
+	    function (f, t, s)
+      	{
+        	var amp = 1 / Math.sqrt(1.5 * (t - s.onTime));
+        	return amp * Math.sin(t * f * 2 * Math.PI);
+      	}
+    ));
 
+    mixer.connect(fInstr.output);
 
+    var fTrack = newTrack(fInstr);
 
+    makeNotes(fTrack, 0, 'C4,C4,E4,C4,G3,G3,F3');
 
 [DONE] TODO: makeNotes string notation, support blank spots for pauses
 

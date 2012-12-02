@@ -321,9 +321,10 @@ function initAudioEnv()
         bass: bass
     };
 
-    audioEnv.addNode = function (audioNode)
+    audioEnv.addNode = function (node)
     {
-        return graph.addNode(audioNode);
+        console.log('adding graph node: ' + node.name);
+        return graph.addNode(node);
     }
 
     audioEnv.newTrack = function (instr)
