@@ -75,52 +75,6 @@
             if (stop) $el.stop_btn.removeAttr('disabled');
         }
     }
-    
-    /**
-    Make a function that will display the given error message.
-    Useful in callbacks, etc. Handler is a callback that will be called
-    no matter what. ok_handler will be called when the user clicks "ok"
-    on the error dialog.
-    */
-    function makeErrorMsg(msg, handler, ok_handler)
-    {
-        return function (data)
-        {
-            hidePopup();
-            $el.dim.show();
-            $el.error_msg.show();
-            $el.error_msg_text.text(msg);
-            centerPopup();
-            if (handler) handler(data, msg);
-            if (ok_handler)
-                $("#error-ok-btn").one("click", {msg: msg, data: data}, function (evt_data)
-                {
-                    ok_handler(evt_data);
-                });
-        return false;
-        }
-    }
-
-
-
-    /**
-    Display an info message.
-    NOTE: msg can be HTML
-    */
-    function showInfoMsg(msg, legend, ok_handler)
-    {
-        legend = legend || "";
-        $el.dim.show();
-        $el.info_msg.show();
-        $el.info_msg_text.html(msg);
-        $el.info_msg_legend.text(legend);
-        centerPopup();
-        if (ok_handler)
-            $("#info-ok-btn").one("click", {msg: msg}, function (data)
-            {
-                ok_handler(data);
-            });
-    }
 
 
     /*      Resizing/Layout     */
@@ -174,6 +128,51 @@
         return false;
     }
 
+    /**
+    Make a function that will display the given error message.
+    Useful in callbacks, etc. Handler is a callback that will be called
+    no matter what. ok_handler will be called when the user clicks "ok"
+    on the error dialog.
+    */
+    function makeErrorMsg(msg, handler, ok_handler)
+    {
+        return function (data)
+        {
+            hidePopup();
+            $el.dim.show();
+            $el.error_msg.show();
+            $el.error_msg_text.text(msg);
+            centerPopup();
+            if (handler) handler(data, msg);
+            if (ok_handler)
+                $("#error-ok-btn").one("click", {msg: msg, data: data}, function (evt_data)
+                {
+                    ok_handler(evt_data);
+                });
+        return false;
+        }
+    }
+
+
+
+    /**
+    Display an info message.
+    NOTE: msg can be HTML
+    */
+    function showInfoMsg(msg, legend, ok_handler)
+    {
+        legend = legend || "";
+        $el.dim.show();
+        $el.info_msg.show();
+        $el.info_msg_text.html(msg);
+        $el.info_msg_legend.text(legend);
+        centerPopup();
+        if (ok_handler)
+            $("#info-ok-btn").one("click", {msg: msg}, function (data)
+            {
+                ok_handler(data);
+            });
+    }
 
 
     /*      Code Saving/Restoring       */
@@ -199,7 +198,14 @@
 
     /*      Utility Functions       */
 
-
+    /**
+    Make a link to load a given gist/file in CodeBeats
+    */
+    function makeGistLink(gist_id, file_name)
+    {
+        return window.location.origin + window.location.pathname +
+        "#" + makeUrlArgs({gist: gist_id, file: file_name});
+    }
 
     /**
     Parse a string like location.hash or location.query into an object
@@ -221,6 +227,22 @@
         }
 
         return args_ob;
+    }
+
+    /**
+    Create a string of arg=value pairs from an object
+    */
+    function makeUrlArgs(args)
+    {
+        var args_str = "";
+        for (var key in args)
+        {
+            if (!args.hasOwnProperty(key)) continue;
+            args_str += key + "=" + args[key] + "&";
+        }
+        // eat ending "&"
+        args_str = args_str.substring(0, --args_str.length);
+        return args_str;
     }
 
     /**
@@ -246,9 +268,10 @@
      */
     function clearAuthArgs()
     {
-        // TODO: have this preserve any non-auth related args
-        // like gist=, file= etc
-        window.location.hash = "";
+        var args = parseUrlArgs(window.location.hash);
+        delete args.access_token;
+        delete args.token_type;
+        window.location.hash = makeUrlArgs(args);
         document.cookie = "gha=" + no_cookie;
     }
 
@@ -324,11 +347,11 @@
     */
     function getGistOb(gist_id)
     {
+        // TODO: disable pretty much everything if they are not logged in
         var req = $.get(
             "https://api.github.com/gists/" + gist_id + "?" +
-            "access_token=" + atoken + "&" +
-            "client_id=" + client_id
-            , post_data);
+            (atoken ? "access_token=" + atoken + "&" : "") +
+            "client_id=" + client_id);
         return req;
     }
 
@@ -338,7 +361,7 @@
     function getGistFiles(id)
     {
         var req = new $.Deferred();
-        getGistOb()
+        getGistOb(id)
             .success(function(data){
                 req.resolve(data.files);
             })
@@ -406,6 +429,24 @@
 //============================================================================
 //      UI Display/Event handling Functions
 //============================================================================
+
+    /**
+    Load code from a given file/gist into the CM editor
+     */
+    function loadGistCode(gist_id, file_name)
+    {
+        var req = getGistOb(gist_id);
+        req.success(function(data)
+        {
+            console.log(data);
+            var file = data.files[file_name];
+            console.log(file);
+            // TODO: error handling
+            if (file && file.content)
+                ui.cm.setValue(file.content);
+        });
+        req.fail(github_api_error);
+    }
 
     /**
     Handle disabling "recent gists" when the "save to new gist" is checked
@@ -477,10 +518,14 @@
         function cb(data)
         {
             hidePopup();
-            showInfoMsg("Your code has been saved to: " +
-                        "<a href='"  + data.html_url + "'>" +
-                        data.html_url + "</a>",
-                        "Gist Saved");
+            var code_beats_link =  makeGistLink(data.id, file_name);
+            var msg = "Your code has been saved to: " +
+                      "<a href='"  + data.html_url + "'>" +
+                      data.html_url + "</a><br/><br/>" +
+                      "You can link people to it at: " +
+                      "<a href='" + code_beats_link + "'>" +
+                      code_beats_link + "</a>";
+            showInfoMsg(msg, "Gist Saved");
         }
         
         if ($("#save-create-new").prop("checked"))
@@ -541,7 +586,9 @@
     // the client id for the app
     // NOTE: this needs to be changed for a real one
     var client_id = "<% CLIENT_ID %>";
+
     
+    // TODO: these are not used atm
     // the currently selected gist
     var gist = null;
     // the currently selected file
@@ -693,24 +740,27 @@
 
     // first check if we already have an auth cookie
     var cookies = parseCookies();
+    var args = parseUrlArgs(window.location.hash);
+
     // if there is an auth cookie, it needs to be overwritten for the life
     // of the page so it can't be accessed from eval()'d code
     if (cookies && cookies.gha && cookies.gha !== no_cookie) {
         atoken = cookies.gha;
         logged_in = true;
-        clearAuthArgs()
-    } else {
-        // parse auth token if any
-        // TODO: this needs to be done earlier to grab any
-        // gist=&file= args
-        var args = parseUrlArgs(window.location.hash);
-        if (args.access_token)
-        {
-            atoken = args.access_token;
-            logged_in = true;
-            clearAuthArgs();
-        }
+        clearAuthArgs();
     }
+    // check if the load is coming from a github authentication
+    // redirect
+    else if (args.access_token)
+    {
+        atoken = args.access_token;
+        logged_in = true;
+        clearAuthArgs();
+    }
+    
+    // check if we need to load a file
+    // TODO: args object hasn't been scrubbed yet, does it need it?
+    if ( args.gist && args.file ) loadGistCode(args.gist, args.file);
 
 
 
