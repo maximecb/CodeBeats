@@ -198,9 +198,9 @@ Piece.prototype.stop = function ()
     {
         // Send an all notes off event to all synthesis nodes
         var notesOffEvt = new AllNotesOffEvt();
-        for (var i = 0; i < this.graph.nodes.length; ++i)
+        for (var i = 0; i < this.graph.order.length; ++i)
         {
-            var node = this.graph.nodes[i];
+            var node = this.graph.order[i];
             node.processEvent(notesOffEvt);
         }
     }

@@ -138,20 +138,17 @@ FnInstr.prototype.processEvent = function (evt, time)
 
             if (state.note === note)
             {
-                //noteState = state;
-                this.actNotes.splice(i, 1);
+                noteState = state;
                 break;
             }
         }
 
-        /*
         // If the note is active
         if (noteState !== undefined)
         {
             // Set the note-off time
             noteState.offTime = time;
         }
-        */
     }
 
     // All notes off event
@@ -192,7 +189,17 @@ FnInstr.prototype.update = function (time, sampleRate)
 
         for (var j = 0; j < outBuf.length; ++j)
         {
-            outBuf[j] += this.sampleFn(noteFreq, curTime, noteState);
+            var sample = this.sampleFn(noteFreq, curTime, noteState);
+
+            if (sample === false)
+            {
+                console.log('killing note');
+                this.actNotes.splice(i, 1);
+                i--;
+                break;
+            }
+
+            outBuf[j] += sample;
 
             curTime += deltaTime;
         }

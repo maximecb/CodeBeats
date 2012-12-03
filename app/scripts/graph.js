@@ -264,11 +264,6 @@ function AudioGraph(sampleRate)
     this.sampleRate = sampleRate;
 
     /**
-    List of nodes
-    */
-    this.nodes = [];
-
-    /**
     Output node
     */
     this.outNode = null;
@@ -280,28 +275,16 @@ function AudioGraph(sampleRate)
 }
 
 /**
-Add a node to the graph
+Set the output node for the graph
 */
-AudioGraph.prototype.addNode = function (node)
+AudioGraph.prototype.setOutNode = function (node)
 {
     assert (
-        this.nodes.indexOf(node) === -1,
-        'node already in graph'
-    );
-
-    assert (
         !(node instanceof OutNode && this.outNode !== null),
-        'output node already in graph'
+        'output node already set'
     );
 
-    if (node instanceof OutNode)
-        this.outNode = node;
-
-    // Add the node to the graph
-    this.nodes.push(node);
-
-    // Invalidate any existing node ordering
-    this.order = undefined;
+    this.outNode = node;
 
     return node;
 }
@@ -322,12 +305,15 @@ AudioGraph.prototype.orderNodes = function ()
     // Total count of input edges
     var numEdges = 0;
 
-    // For each graph node
-    for (var i = 0; i < this.nodes.length; ++i)
-    {
-        var node = this.nodes[i];
+    var visited = [];
 
-        //console.log('Graph node: ' + node.name);
+    function visit(node)
+    {
+        // If this node was visited, stop
+        if (visited.indexOf(node) !== -1)
+            return;
+
+        visited.push(node);
 
         // List of input edges for this node
         node.inEdges = [];
@@ -335,19 +321,21 @@ AudioGraph.prototype.orderNodes = function ()
         // Collect all inputs for this node
         for (k in node)
         {
+            // If this is an input
             if (node[k] instanceof AudioInput)
             {
                 var audioIn = node[k];
 
-                //console.log('Input port: ' + audioIn.name);
-                //console.log(audioIn.src);
-
+                // If this input is connected
                 if (audioIn.src instanceof AudioOutput)
                 {
                     //console.log(node.name + ': ' + audioIn.name);
 
                     node.inEdges.push(audioIn.src);
                     ++numEdges;
+
+                    // Visit the node for this input
+                    visit(audioIn.src.node);
                 }
             }
         }
@@ -357,8 +345,11 @@ AudioGraph.prototype.orderNodes = function ()
             S.push(node);
     }
 
+    // Visit nodes starting from the output node
+    visit(this.outNode);
+
     console.log('Num edges: ' + numEdges);
-    console.log('Num nodes: ' + this.nodes.length);
+    console.log('Num nodes: ' + visited.length);
 
     // While S not empty
     while (S.length > 0)
@@ -409,8 +400,8 @@ AudioGraph.prototype.orderNodes = function ()
     );
 
     assert (
-        L.length === this.nodes.length,
-        'invalid ordering length'
+        L.length >= 1,
+        'invalid node ordering'
     );
 
     console.log('Ordering computed');

@@ -185,6 +185,10 @@ function initAudioEnv()
     // Create the audio graph
     var graph = new AudioGraph(audioCtx.sampleRate);
 
+    // Create a stereo sound output node
+    var outNode = new OutNode(2);
+    graph.setOutNode(outNode);
+
     // Create the piece
     var piece = new Piece(graph);
 
@@ -193,14 +197,11 @@ function initAudioEnv()
     piece.beatsPerBar = 4;
     piece.noteVal = 4;
 
-    // Create a stereo sound output node
-    var outNode = graph.addNode(new OutNode(2));
-
     // Drum kit instrument
-    var drumKit = graph.addNode(new SampleKit());
+    var drumKit = new SampleKit();
 
     // Synth piano
-    var piano = graph.addNode(new VAnalog(2));
+    var piano = new VAnalog(2);
     piano.name = 'piano';
     piano.oscs[0].type = 'sawtooth';
     piano.oscs[0].detune = 0;
@@ -225,7 +226,7 @@ function initAudioEnv()
     piano.filterEnvAmt = 0.75;
 
     // Bass patch
-    var bass = graph.addNode(new VAnalog(3));
+    var bass = new VAnalog(3);
     bass.name = 'bass';
     bass.oscs[0].type = 'pulse';
     bass.oscs[0].duty = 0.5;
@@ -253,7 +254,7 @@ function initAudioEnv()
     bass.filterEnvAmt = 0.85;
 
     // Lead patch
-    var lead = graph.addNode(new VAnalog(2));
+    var lead = new VAnalog(2);
     lead.name = 'lead';
     lead.oscs[0].type = 'pulse';
     lead.oscs[0].duty = 0.5;
@@ -277,7 +278,7 @@ function initAudioEnv()
     lead.filterEnvAmt = 0.85;
 
     // Mixer with 32 channels
-    mixer = graph.addNode(new Mixer(32));
+    mixer = new Mixer(32);
     mixer.inVolume[0] = 1.5;
     mixer.inVolume[1] = 0.2;
     mixer.inVolume[2] = 0.5;
@@ -320,12 +321,6 @@ function initAudioEnv()
         lead: lead,
         bass: bass
     };
-
-    audioEnv.addNode = function (node)
-    {
-        console.log('adding graph node: ' + node.name);
-        return graph.addNode(node);
-    }
 
     audioEnv.newTrack = function (instr)
     {

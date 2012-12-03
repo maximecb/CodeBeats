@@ -22,11 +22,15 @@ TODO: Code->Beats logo
 
 TODO: Add FAQ, Tutorial links
 
+TODO: simple MIDI interface, test with keyboard
+  https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
 
 
-TODO: graph, find all nodes from output node, remove need to add to graph ***
 
 
+[DONE] TODO: note killing mechanism for FnInstr
+
+[DONE] TODO: graph, find all nodes from output node, remove need to add to graph
 
 [DONE] TODO: instrument from sample-producing function => FunInstr
 
@@ -39,9 +43,7 @@ TODO: graph, find all nodes from output node, remove need to add to graph ***
     ));
 
     mixer.connect(fInstr.output);
-
     var fTrack = newTrack(fInstr);
-
     makeNotes(fTrack, 0, 'C4,C4,E4,C4,G3,G3,F3');
 
 [DONE] TODO: makeNotes string notation, support blank spots for pauses
