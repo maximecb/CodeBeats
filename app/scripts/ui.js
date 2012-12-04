@@ -306,7 +306,7 @@
     function saveRecentGist(gist)
     {
         var recent = getRecentGists();
-        recent.push( gist );
+        if (!recent.indexOf(gist)) recent.push( gist );
         recent = recent.join(",");
         return localStorage.setItem("codebeats-recent-gists", recent);
     }
@@ -327,7 +327,9 @@
             {
                 val = recent[length]
                 $select.prepend("<option value='" + val +
-                                "'>" + val + "</option>")
+                                "'>" + val +
+                                " - " + (localStorage.getItem(val) || "") +
+                                "</option>");
             }
             $nag.hide();
             $select.show();
@@ -399,7 +401,10 @@
         // success
         req.success(function(data)
         {
+            // record the gist as recent
             saveRecentGist(data.id);
+            // save the description
+            localStorage.setItem(data.id, desc.substr(0,20));
             if (cb) cb(data);
         });
 
