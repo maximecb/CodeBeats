@@ -6,13 +6,12 @@ TODO: add some information and/or FAQ about CodeBeats
 TODO: prepare some code examples, with share-able links
 
 TODO: play with Chrome MIDI API
+  https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
 - Way to map input events to track
 - Do nothing if API not supported
 - Default behaviors for vanalog, mixer
 
 TODO: write JS/server code to interface with gist sharing system
-
-TODO: live coding prompt/buffer?
 
 TODO: fix drum sample mapping in drum kit
 - If people make pieces depending on this mapping, breaking it would be bad!
@@ -22,11 +21,26 @@ TODO: Code->Beats logo
 
 TODO: Add FAQ, Tutorial links
 
-TODO: simple MIDI interface, test with keyboard
-  https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
+TODO: spectrogram node
 
 
 
+
+
+
+
+
+[DONE] TODO: live coding shell box
+- Can we use CodeMirror for this?
+- Just implement basic REPL, don't worry about layout
+
+(11:32:52 PM) Mot Low: I just want to be able to type some code that will play some chords on a piano with a given timing repeatedly
+(11:33:09 PM) Mot Low: and then be able to say, ok now start playing this on drums
+(11:33:19 PM) Mot Low: and then while both are running tweak them
+(11:33:33 PM) Mot Low: once we get that we can start building on sorts of neat stuff on top
+(11:33:52 PM) Mot Low: in terms of api theres a ton of stuff we could add
+(11:34:22 PM) Mot Low: specifying individual notes to play, or chord patterns
+(11:34:32 PM) Mot Low: or even stuff like "play this progression starting with this chord"
 
 [DONE] TODO: note killing mechanism for FnInstr
 

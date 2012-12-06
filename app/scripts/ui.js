@@ -617,6 +617,9 @@
         info_msg_legend :"#info-msg-legend",
         // the container for the CM editor
         editor : "#editor",
+        // containers for REPL CM editors
+        repl_history : "#repl_history",
+        repl_input : "#repl_input",
         // play button in toolbar
         play_btn : "#play-btn",
         // pause button in toolbar
@@ -659,6 +662,46 @@
             theme: "monokai",
             lineNumbers: true
         });
+
+
+        ui.replHistory = CodeMirror($el.repl_history.get(0), {
+            mode: "javascript",
+            theme: "monokai",
+            lineNumbers: false,
+            readOnly: true
+        });
+        ui.replHistory.getScrollerElement().style.height = '120px';
+
+        ui.replInput = CodeMirror($el.repl_input.get(0), {
+            mode: "javascript",
+            theme: "monokai",
+            lineNumbers: false,
+            onChange: onReplChange
+        });
+        ui.replInput.getScrollerElement().style.height = '40px';
+
+        function onReplChange()
+        {
+            if (ui.replInput.lineCount() <= 1)
+                return;
+
+            var input = ui.replInput.getValue().trimRight();
+            ui.replInput.setValue('');
+
+            // Evaluate the audio code
+            evalAudioCode(input);
+
+            // Update the history
+            var history = ui.replHistory.getValue();
+            if (history.length > 0)
+                history += '\n'
+            history += input;
+            ui.replHistory.setValue(history);
+
+            // Scroll the history to the last line
+            ui.replHistory.scrollIntoView({line:ui.replHistory.lineCount(), ch:0});
+        }
+
 
         /**
         Update UI

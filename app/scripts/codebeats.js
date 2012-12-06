@@ -96,6 +96,24 @@ function initAudio()
     // Setup the initial audio environment
     reset();
 
+    /**
+    Evaluate audio code
+    */
+    evalAudioCode = function (codeStr)
+    {  
+        // TODO: beat time?
+        //audioEnv.now = piece.playTime();
+
+        // Evaluate the code string in the audio environment
+        with (audioEnv)
+        {
+            eval(codeStr);
+        }    
+
+        // Order the audio graph nodes
+        audioEnv.graph.orderNodes();
+    }
+
     playAudio = function (codeStr)
     {
         console.log('entering playAudio');
@@ -116,7 +134,7 @@ function initAudio()
                 stopAudio()
 
             // Evaluate the audio code
-            evalAudioCode(codeStr, audioEnv);
+            evalAudioCode(codeStr);
 
             // Set the playback time on the piece to 0 (start)
             audioEnv.piece.setTime(0);
@@ -357,20 +375,5 @@ function initAudioEnv()
     }
 
     return audioEnv;
-}
-
-/**
-Eval and run the audio code
-*/
-function evalAudioCode(codeStr, audioEnv)
-{  
-    // Evaluate the code string in the audio environment
-    with (audioEnv)
-    {
-        eval(codeStr);
-    }    
-
-    // Order the audio graph nodes
-    audioEnv.graph.orderNodes();
 }
 
