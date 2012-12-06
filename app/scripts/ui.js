@@ -306,7 +306,7 @@
     function saveRecentGist(gist)
     {
         var recent = getRecentGists();
-        if (!recent.indexOf(gist)) recent.push(gist);
+        if (recent.indexOf(gist) < 0) recent.push(gist);
         recent = recent.join(",");
         return localStorage.setItem("codebeats-recent-gists", recent);
     }
@@ -319,16 +319,18 @@
         var recent = getRecentGists();
         var length = recent.length;
         var val = null;
+        var gist_ob = null;
         
         if (length)
         {
             $select.empty();
             while (length--)
             {
-                val = recent[length]
+                val = recent[length];
+                gist_ob = getRecentGistOb(val);
                 $select.prepend("<option value='" + val +
                                 "'>" + val +
-                                " - " + (localStorage.getItem(val) || "") +
+                                " - " + (gist_ob.desc.substr(0, 30) || "") + "..." +
                                 "</option>");
             }
             $nag.hide();
@@ -419,10 +421,19 @@
         // success
         req.success(function(data)
         {
+            // save code to localStorage
+            saveCode();
             // record the gist as recent
             saveRecentGist(data.id);
             // save the description
-            localStorage.setItem(data.id, desc.substr(0,20));
+            var gist_ob = getRecentGistOb(data.id);
+            gist_ob.desc = desc;
+            // save the last file edited
+            gist_ob.last_file = file_name;
+            // save the gist info object to local storage
+            saveRecentGistOb(gist_ob);
+            // add to list of recent gists
+            saveRecentGist(data.id);
             if (cb) cb(data);
         });
 
@@ -461,9 +472,7 @@
         var req = getGistOb(gist_id);
         req.success(function(data)
         {
-            console.log(data);
             var file = data.files[file_name];
-            console.log(file);
             // TODO: error handling
             if (file && file.content)
                 ui.cm.setValue(file.content);
@@ -488,8 +497,65 @@
             }
         }
 
+
     /**
-    Display the promp to save, setup ui elements
+    Display the prompt to open, setup ui elements
+    */
+    function setupOpen()
+    {
+        $("#open-choose-gist").show();
+        $("#open-choose-file").hide();
+        showPopup( $("#open-form") );
+        displayRecentGists($("#open-recent"), $("#open-no-recent"));
+        return false;
+    }
+    
+    /**
+    Finalize options for opening
+    */
+    function confirmOpen()
+    {
+        // check for "Gist ID:"
+        var id = $("#open-existing-id").val();
+        // check for "Recent Gist"
+        if (!id) id = $("#open-recent").val();
+        // otherwise, send them back
+        if (!id) setupOpen();
+        var gist_ob = getRecentGistOb(id);
+        if (gist_ob.last_file) $("#open-gist-filename").val(gist_ob.last_file);
+        $("#open-choose-gist").hide();
+        $("#open-choose-file").show();
+        return false;
+    }
+
+    /**
+    Open gist, handle response
+     */
+    function handleOpen()
+    {
+        var id = null;
+
+        // first get filename
+        var file_name = $("#open-gist-filename").val();
+
+        if ( !file_name )
+        {
+            $("#open-gist-filename").focus();
+            return false;
+        }
+        
+        // check for "Gist ID:"
+        var id = $("#open-existing-id").val();
+        // check for "Recent Gist"
+        if (!id) id = $("#open-recent").val();
+        loadGistCode(id, file_name);
+        hidePopup();
+        return false;
+    }
+
+
+    /**
+    Display the prompt to save, setup ui elements
     */
     function setupSave()
     {
@@ -517,6 +583,15 @@
     */
     function confirmSave()
     {
+        var id = $("#save-recent").val();
+        var gist_ob = null;
+        // get last entries for the gist if possible
+        if (id)
+        {
+            gist_ob = getRecentGistOb(id);
+            if (gist_ob.last_file) $("#save-gist-filename").val(gist_ob.last_file);
+            if (gist_ob.desc) $("#save-gist-desc").val(gist_ob.desc);
+        }
         $("#save-choose-gist").hide();
         $("#save-gist-details").show();
         return false;
@@ -557,8 +632,13 @@
         {
             saveSnippet(null, file_name, desc, ui.cm.getValue(), cb);
         }
-        else{
-            id = $("#save-recent").val();
+        else
+        {
+            // first check for "Existing Gist" entry
+            id = $("#save-existing-id").val();
+            // check for selection in "Recent Gists"
+            if (!id) id = $("#save-recent").val();
+            // if no id, send them back to select/enter one
             if (!id) return setupSave();
             saveSnippet(id, file_name, desc, ui.cm.getValue(), cb);
         }
@@ -748,11 +828,9 @@
         $("#save-create-new").change(saveNewGistToggle);
         
         // open Gist button
-        $("#load-btn").click(function() {
-            showPopup( $("#open-form") );
-            displayRecentGists($("#open-recent"), $("#open-no-recent"));
-            return false;
-        });
+        $("#load-btn").click(setupOpen);
+        $("#open-next-btn").click(confirmOpen);
+        $("#open-confirm-btn").click(handleOpen);
         
 
         // the "just save what I have locally" link

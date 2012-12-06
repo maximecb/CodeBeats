@@ -71,13 +71,20 @@
             <label><b>OR</b></label>
 
             <label>Gist ID:</label>
-            <input type="text" placeholder="enter gist…">
+            <input id="open-existing-id" type="text" placeholder="enter gist…">
             <div class="btn-group">
                 <button class="btn cancel-btn">Cancel</button>
                 <button id="open-next-btn" class="btn">Next</button>
             </div>
         </fieldset>
         <fieldset id="open-choose-file">
+            <legend>Gist Details</legend>
+            <label>Filename:</label>
+            <input id="open-gist-filename" type="text" placeholder="enter filename...">
+            <div class="btn-group">
+                <button class="btn cancel-btn">Cancel</button>
+                <button id="open-confirm-btn" class="btn">Open</button>
+            </div>
         </fieldset>
     </form>
     <a id="load-local" href="#">Just load what I have saved locally.</a>
