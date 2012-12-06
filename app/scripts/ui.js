@@ -306,7 +306,7 @@
     function saveRecentGist(gist)
     {
         var recent = getRecentGists();
-        if (!recent.indexOf(gist)) recent.push( gist );
+        if (!recent.indexOf(gist)) recent.push(gist);
         recent = recent.join(",");
         return localStorage.setItem("codebeats-recent-gists", recent);
     }
@@ -343,6 +343,24 @@
         }
     }
 
+    /**
+    Get the gist object for a given id from localStorage or return a new object
+    */
+    function getRecentGistOb(id)
+    {
+        var gist = localStorage.getItem(id);
+        if (gist) return JSON.parse(gist);
+        return { id: id };
+    }
+    
+    /**
+    Get the gist object for a given id from localStorage or return a new object
+    */
+    function saveRecentGistOb(ob)
+    {
+        localStorage.setItem(ob.id, JSON.stringify(ob));
+    }
+    
 
     /**
     Make a request for the info for a specific gist
@@ -461,10 +479,12 @@
             if ($("#save-create-new").prop("checked"))
             {
                 $("#save-recent").attr("disabled", "disabled");
+                $("#save-existing-id").attr("disabled", "disabled");
             }
             else
             {
                 $("#save-recent").removeAttr("disabled");
+                $("#save-existing-id").removeAttr("disabled");
             }
         }
 

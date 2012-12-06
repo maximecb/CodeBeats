@@ -88,12 +88,15 @@
     <a class="popup-close pull-right" href="#">X</a>
     <form>
         <fieldset id="save-choose-gist">
-            <legend>Choose Gist</legend>
+            <legend>Save Location</legend>
             <label>Recent Gists:</label>
             <span id="save-no-recent"
                   class="help-block">You have no recent gists.</span>
             <select id="save-recent" multiple="multiple">
             </select>
+            <label><b>OR</b></label>
+            <label>Existing Gist:</label>
+            <input id="save-existing-id" type="text" placeholder="Enter a Gist ID...">
             <label><b>OR</b></label>
              <label class="checkbox">
                 <input id="save-create-new" type="checkbox"> New gist
@@ -115,7 +118,7 @@
             </div>
         </fieldset>
     </form>
-    <a id="save-local" href="#">Just save localy, I'll finish later.</a>
+    <a id="save-local" href="#">Just save locally, I'll finish later.</a>
 </div>
 
 <!-- Info Message -->
