@@ -1,30 +1,35 @@
 #!/bin/sh
 
-cd app
 
-# basic setup
+# External deps are kept in app/components
+cd app
+# Clean install
+rm -rf components
 mkdir components
 cd components
-# folders for each dep
-mkdir jquery
+
+
+# Handle jquery UI/bootstrap
+wget https://github.com/addyosmani/jquery-ui-bootstrap/zipball/v0.23
+unzip v0.23
+mv addyosmani-jquery-ui-bootstrap-cf2a77b jqui-bootstrap
+rm v0.23
+
+
+# Handle codemirror
 mkdir codemirror
-# handle jquery
-cd jquery
-curl -o jquery.min.js https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js
-# handle codemirror
-cd ../codemirror
+cd codemirror
 mkdir lib
 mkdir theme
 mkdir mode
 cd lib
-curl -o codemirror.js https://raw.github.com/marijnh/CodeMirror/master/lib/codemirror.js
-curl -o codemirror.css https://raw.github.com/marijnh/CodeMirror/master/lib/codemirror.css
+wget -O codemirror.js https://raw.github.com/marijnh/CodeMirror/master/lib/codemirror.js
+wget -O codemirror.css https://raw.github.com/marijnh/CodeMirror/master/lib/codemirror.css
 cd ../theme
-curl -o monokai.css https://raw.github.com/marijnh/CodeMirror/master/theme/monokai.css
+wget -O monokai.css https://raw.github.com/marijnh/CodeMirror/master/theme/monokai.css
 cd ../mode
 mkdir javascript
 cd javascript
-curl -o javascript.js https://raw.github.com/marijnh/CodeMirror/master/mode/javascript/javascript.js
+wget -O javascript.js https://raw.github.com/marijnh/CodeMirror/master/mode/javascript/javascript.js
 
-
-
+echo "Deps installed."
